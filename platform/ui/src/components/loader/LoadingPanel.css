@@ -1,0 +1,8 @@
+
+.loaderApp span span {
+  background-color: var(--table-text-secondary-color);
+}
+
+.loaderApp span{
+  text-align: center;
+}

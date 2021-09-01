@@ -2,7 +2,7 @@
  *  https://redux.js.org/basics/actions#action-creators
  */
 
-import {
+ import {
   CLEAR_VIEWPORT,
   SET_ACTIVE_SPECIFIC_DATA,
   SET_SERVERS,
@@ -12,6 +12,13 @@ import {
   SET_VIEWPORT_LAYOUT_AND_DATA,
   SET_USER_PREFERENCES,
 } from './constants/ActionTypes.js';
+
+import {
+  ERROR_GET_PIXYL_LESIONS,
+  GET_PIXYL_LESIONS,
+  LOADING_GET_PIXYL_LESIONS,
+} from './constants/PixylActionTypes';
+import * as PixylService from '../services/PixylService';
 
 /**
  * The definition of a viewport layout.
@@ -121,6 +128,22 @@ export const setServers = servers => ({
   servers,
 });
 
+export const getPixylLesions = studyUUID => {
+  return dispatch => {
+    dispatch({ type: LOADING_GET_PIXYL_LESIONS });
+
+    return PixylService.getPixylLesions(studyUUID)
+      .then(res => {
+        dispatch({ type: GET_PIXYL_LESIONS, lesions: res });
+        return;
+      })
+      .catch(e => {
+        dispatch({ type: ERROR_GET_PIXYL_LESIONS });
+        return Promise.reject(e);
+      });
+  };
+};
+
 const actions = {
   /**
    * VIEWPORT
@@ -142,6 +165,10 @@ const actions = {
   setMeasurements,
   setStudyData,
   setServers,
+  /**
+   * EXTENSIONS
+   */
+  getPixylLesions,
 };
 
 export default actions;

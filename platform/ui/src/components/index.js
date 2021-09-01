@@ -26,6 +26,7 @@ import {
 import { ToolbarSection } from './toolbarSection';
 import { Tooltip } from './tooltip';
 import { ErrorBoundary } from './errorBoundary';
+import { LoadingPanel } from './loader';
 
 export {
   ErrorBoundary,
@@ -59,5 +60,6 @@ export {
   Tooltip,
   AboutContent,
   OHIFModal,
-  ErrorPage
+  ErrorPage,
+  LoadingPanel,
 };

@@ -44,7 +44,7 @@ import {
 } from './utils/index.js';
 
 /** Extensions */
-import { GenericViewerCommands, MeasurementsPanel } from './appExtensions';
+import { GenericViewerCommands, MeasurementsPanel, PixylLesions } from './appExtensions';
 
 /** Viewer */
 import OHIFStandaloneViewer from './OHIFStandaloneViewer';
@@ -296,6 +296,8 @@ function _initExtensions(extensions, cornerstoneExtensionConfig, appConfig) {
     /* WARNING: MUST BE REGISTERED _AFTER_ OHIFCornerstoneExtension */
     requiredExtensions.push(MeasurementsPanel);
   }
+
+  requiredExtensions.push(PixylLesions);
 
   const mergedExtensions = requiredExtensions.concat(extensions);
   extensionManager.registerExtensions(mergedExtensions);

@@ -31,6 +31,7 @@ import {
   OHIFModal,
   ErrorBoundary,
   ErrorPage,
+  LoadingPanel,
 } from './components';
 import { useDebounce, useMedia } from './hooks';
 
@@ -140,4 +141,5 @@ export {
   ViewerbaseDragDropContext,
   asyncComponent,
   retryImport,
+  LoadingPanel,
 };
