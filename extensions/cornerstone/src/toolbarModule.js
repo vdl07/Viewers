@@ -17,7 +17,6 @@
 // setToolActive commands should receive the button event that triggered
 // so we can do the "bind to this button" magic
 
-
 const TOOLBAR_BUTTON_TYPES = {
   COMMAND: 'command',
   SET_TOOL_ACTIVE: 'setToolActive',
@@ -122,6 +121,24 @@ const definitions = [
     label: 'More',
     icon: 'ellipse-circle',
     buttons: [
+      {
+        id: 'Brush',
+        label: 'Brush',
+        icon: 'brush',
+        //
+        type: TOOLBAR_BUTTON_TYPES.SET_TOOL_ACTIVE,
+        commandName: 'setToolActive',
+        commandOptions: { toolName: 'Brush' },
+      },
+      {
+        id: 'SphericalBrush',
+        label: 'SphericalBrush',
+        icon: 'brush',
+        //
+        type: TOOLBAR_BUTTON_TYPES.SET_TOOL_ACTIVE,
+        commandName: 'setToolActive',
+        commandOptions: { toolName: 'SphericalBrush' },
+      },
       {
         id: 'Magnify',
         label: 'Magnify',
