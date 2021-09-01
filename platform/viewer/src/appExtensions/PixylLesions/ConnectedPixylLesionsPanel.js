@@ -14,6 +14,9 @@ function mapStateToProps(state) {
   return { pixylLesions, studies, viewports };
 }
 
+/**
+ * Merge ConnectedPixylLesionsPanel props to PixylLesionsPanel
+ */
 const mergeProps = (propsFromState, propsFromDispatch, ownProps) => {
   return { ...propsFromDispatch, ...propsFromState, ...ownProps };
 };
