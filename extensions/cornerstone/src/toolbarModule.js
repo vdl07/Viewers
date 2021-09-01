@@ -17,6 +17,7 @@
 // setToolActive commands should receive the button event that triggered
 // so we can do the "bind to this button" magic
 
+
 const TOOLBAR_BUTTON_TYPES = {
   COMMAND: 'command',
   SET_TOOL_ACTIVE: 'setToolActive',
