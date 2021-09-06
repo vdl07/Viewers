@@ -68,7 +68,7 @@ export default function getSopClassHandlerModule({ servicesManager }) {
         return getSourceDisplaySet(studies, segDisplaySet, activateLabelMap, onDisplaySetLoadFailureHandler);
       };
 
-      segDisplaySet.load = async function(referencedDisplaySet, studies) {
+      segDisplaySet.load = async function(referencedDisplaySet, studies, noRefresh) {
         segDisplaySet.isLoaded = true;
         const { StudyInstanceUID } = referencedDisplaySet;
         const segArrayBuffer = await DicomLoaderService.findDicomDataPromise(
@@ -105,7 +105,8 @@ export default function getSopClassHandlerModule({ servicesManager }) {
                 labelmapBufferArray[i],
                 segMetadata,
                 segmentsOnFrame,
-                segmentsOnFrameArray[i]
+                segmentsOnFrameArray[i],
+                noRefresh
               )
             );
           }
@@ -124,7 +125,8 @@ export default function getSopClassHandlerModule({ servicesManager }) {
             labelmapBufferArray[0],
             segMetadata,
             segmentsOnFrame,
-            []
+            [],
+            noRefresh
           );
         }
       };

@@ -59,8 +59,13 @@ export default class DICOMSegTempCrosshairsTool extends BaseTool {
   }
 }
 
-DICOMSegTempCrosshairsTool.addCrosshair = (element, imageId, segmentNumber) => {
-  const labelmap3D = getters.labelmap3D(element);
+DICOMSegTempCrosshairsTool.addCrosshair = (
+  element,
+  imageId,
+  segmentNumber,
+  index3D
+) => {
+  const labelmap3D = getters.labelmaps3D(element).labelmaps3D[index3D];
   const stackToolState = cornerstoneTools.getToolState(element, 'stack');
   const enabledElement = cornerstone.getEnabledElement(element);
 

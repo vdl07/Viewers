@@ -26,8 +26,11 @@ export default {
    * MODULE GETTERS
    */
   getPanelModule({ servicesManager, commandsManager }) {
-    const ExtendedConnectedPixylLesionsPanel = () => (
-      <ConnectedPixylLesionsPanel commandsManager={commandsManager} />
+    const ExtendedConnectedPixylLesionsPanel = propsIncluded => (
+      <ConnectedPixylLesionsPanel
+        commandsManager={commandsManager}
+        studiesStore={propsIncluded.studies}
+      />
     );
     const panelModule = {
       menuOptions: [

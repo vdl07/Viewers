@@ -3,11 +3,11 @@ import PropTypes from 'prop-types';
 
 export default class PixylLesionsList extends React.Component {
   static propTypes = {
-    pixylLesions: PropTypes.object,
+    pixylLesionsSerie: PropTypes.object,
     onClickLesion: PropTypes.func,
   };
   render() {
-    const { pixylLesions, onClickLesion } = this.props;
+    const { pixylLesionsSerie, onClickLesion } = this.props;
     return (
       <table className="table table--striped table--hoverable">
         <thead className="table-head">
@@ -15,16 +15,17 @@ export default class PixylLesionsList extends React.Component {
             <th>Lesion ID</th>
             <th>Type</th>
             <th>Volume (mL)</th>
-            <th>McDonald region</th>
-            <th>Anotomical region</th>
+            <th style={{ width: '40%' }}>McDonald region</th>
+            {/* <th>Anotomical region</th>
             <th>Vascular territory</th>
-            <th>White matter trac</th>
+            <th>White matter trac</th> */}
           </tr>
         </thead>
         <tbody className="table-body" data-cy="lesions-list-results">
-          {pixylLesions &&
-            pixylLesions.lesions &&
-            pixylLesions.lesions.map((lesion, index) => {
+          {pixylLesionsSerie &&
+            pixylLesionsSerie.msLesions &&
+            pixylLesionsSerie.msLesions.length > 0 &&
+            pixylLesionsSerie.msLesions.map((lesion, index) => {
               return (
                 <PixylLesionRow
                   key={index}
@@ -62,9 +63,9 @@ class PixylLesionRow extends React.Component {
             : '-'}
         </td>
         <td>{pixylLesion.regionMcDo && pixylLesion.regionMcDo.region_name}</td>
+        {/* <td>?</td>
         <td>?</td>
-        <td>?</td>
-        <td>?</td>
+        <td>?</td> */}
       </tr>
     );
   }

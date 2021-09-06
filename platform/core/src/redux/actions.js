@@ -134,7 +134,7 @@ export const getPixylLesions = studyUUID => {
 
     return PixylService.getPixylLesions(studyUUID)
       .then(res => {
-        dispatch({ type: GET_PIXYL_LESIONS, lesions: res });
+        dispatch({ type: GET_PIXYL_LESIONS, pixylLesions: res });
         return;
       })
       .catch(e => {

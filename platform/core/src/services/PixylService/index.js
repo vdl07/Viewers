@@ -1,6 +1,6 @@
 export function getPixylLesions(studyUUID) {
   return window
-    .fetch('http://localhost/laguiole/analysis/' + studyUUID)
+    .fetch('http://localhost/laguiole/study/' + studyUUID)
     .then(res => handleResponse(res));
 }
 
@@ -10,7 +10,7 @@ function handleResponse(response) {
     try {
       data = text && JSON.parse(text);
     } catch (e) {
-      data = test;
+      data = text;
     }
     if (!response.ok) {
       const error = data || response.statusText;

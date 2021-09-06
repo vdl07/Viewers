@@ -2,7 +2,7 @@ import * as PixylLesionsActionType from '../../constants/PixylActionTypes';
 
 const defaultState = {
   pixylLesionLoading: false,
-  lesions: [],
+  lesionsBySerie: [],
   pixylLesionLoaded: false,
   pixylLesionError: undefined,
 };
@@ -13,7 +13,7 @@ const pixylLesions = (state = defaultState, action) => {
       return Object.assign({}, state, {
         pixylLesionLoading: false,
         pixylLesionLoaded: true,
-        lesions: action.lesions,
+        pixylLesions: action.pixylLesions,
       });
     case PixylLesionsActionType.LOADING_GET_PIXYL_LESIONS:
       return Object.assign({}, state, {
