@@ -6,7 +6,7 @@ export default function getSourceDisplaySet(studies, rtStructDisplaySet, activat
     studies
   );
 
-  if (activateLabelMap) {
+  if (activateLabelMap && referencedDisplaySet) {
     rtStructDisplaySet.load(referencedDisplaySet, studies);
   }
 

@@ -5,7 +5,7 @@ export default function getSourceDisplaySet(studies, segDisplaySet, activateLabe
   const referencedDisplaySet = metadata.StudyMetadata.getReferencedDisplaySet(segDisplaySet, studies);
 
   let activatedLabelmapPromise;
-  if (activateLabelMap) {
+  if (activateLabelMap && referencedDisplaySet) {
     activatedLabelmapPromise = setActiveLabelmap(referencedDisplaySet, studies, segDisplaySet, undefined, onDisplaySetLoadFailureHandler);
   }
 
