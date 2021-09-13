@@ -92,10 +92,10 @@ class Viewer extends Component {
   }
 
   state = {
-    isLeftSidePanelOpen: true,
-    isRightSidePanelOpen: false,
-    selectedRightSidePanel: '',
-    selectedLeftSidePanel: 'studies', // TODO: Don't hardcode this
+    isLeftSidePanelOpen: false,
+    isRightSidePanelOpen: true,
+    selectedRightSidePanel: 'pixyl-lesions-panel',
+    selectedLeftSidePanel: '', // TODO: Don't hardcode this
     thumbnails: [],
   };
 
