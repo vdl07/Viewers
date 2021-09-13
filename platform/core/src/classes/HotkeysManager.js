@@ -150,7 +150,7 @@ export class HotkeysManager {
    * @param {String} extension
    * @returns {undefined}
    */
-  registerHotkeys({ commandName, keys, label } = {}, extension) {
+  registerHotkeys({ commandName, keys, label, type } = {}, extension) {
     if (!commandName) {
       log.warn(`No command was defined for hotkey "${keys}"`);
       return;
@@ -166,7 +166,12 @@ export class HotkeysManager {
 
     // Set definition & bind
     this.hotkeyDefinitions[commandName] = { keys, label };
-    this._bindHotkeys(commandName, keys);
+    let typeCustom = type;
+    const MODIFIER_KEYS = ['ctrl', 'alt', 'shift'];
+    if (keys && keys.every(k => MODIFIER_KEYS.some(m => m === k))) {
+      typeCustom = commandName.includes('enable') ? 'keypress' : 'keyup';
+    }
+    this._bindHotkeys(commandName, keys, typeCustom);
     log.info(`Binding ${commandName} to ${keys}`);
   }
 
@@ -196,7 +201,7 @@ export class HotkeysManager {
    * @param {string[]} keys - One or more key combinations that should trigger command
    * @returns {undefined}
    */
-  _bindHotkeys(commandName, keys) {
+  _bindHotkeys(commandName, keys, type) {
     const isKeyDefined = keys === '' || keys === undefined;
     if (isKeyDefined) {
       return;
@@ -205,11 +210,15 @@ export class HotkeysManager {
     const isKeyArray = keys instanceof Array;
     const combinedKeys = isKeyArray ? keys.join('+') : keys;
 
-    hotkeys.bind(combinedKeys, evt => {
-      evt.preventDefault();
-      evt.stopPropagation();
-      this._commandsManager.runCommand(commandName, { evt });
-    });
+    hotkeys.bind(
+      combinedKeys,
+      evt => {
+        evt.preventDefault();
+        evt.stopPropagation();
+        this._commandsManager.runCommand(commandName, { evt });
+      },
+      type
+    );
   }
 
   /**

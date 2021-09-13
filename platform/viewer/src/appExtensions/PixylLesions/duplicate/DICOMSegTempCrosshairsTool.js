@@ -35,7 +35,6 @@ export default class DICOMSegTempCrosshairsTool extends BaseTool {
 
   renderToolData(evt) {
     const eventData = evt.detail;
-    const { element } = eventData;
     const toolState = getToolState(evt.currentTarget, this.name);
 
     if (!toolState) {

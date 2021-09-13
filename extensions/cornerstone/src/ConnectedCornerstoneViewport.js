@@ -4,7 +4,11 @@ import { connect } from 'react-redux';
 import throttle from 'lodash.throttle';
 import { setEnabledElement } from './state';
 
-const { setViewportActive, setViewportSpecificData } = OHIF.redux.actions;
+const {
+  setViewportActive,
+  setViewportSpecificData,
+  triggerChangingStackScroll,
+} = OHIF.redux.actions;
 const {
   onAdded,
   onRemoved,
@@ -56,6 +60,12 @@ const mapStateToProps = (state, ownProps) => {
     isStackPrefetchEnabled: isActive,
     isPlaying,
     frameRate,
+    imageIdIndex:
+      state.pixylCustoms && state.pixylCustoms.synchronisedImageIndex > -1
+        ? parseInt(state.pixylCustoms.synchronisedImageIndex)
+        : undefined,
+    viewportIndex: 0,
+    ...state.pixylCustoms,
     //stack: viewportSpecificData.stack,
     // viewport: viewportSpecificData.viewport,
   };
@@ -66,6 +76,12 @@ const mapDispatchToProps = (dispatch, ownProps) => {
 
   return {
     setViewportActive: () => {
+      if (
+        ownProps.viewportBaseIndex > -1 &&
+        viewportIndex != ownProps.viewportBaseIndex
+      ) {
+        return;
+      }
       dispatch(setViewportActive(viewportIndex));
     },
 
@@ -93,12 +109,45 @@ const mapDispatchToProps = (dispatch, ownProps) => {
     onMeasurementsChanged: (event, action) => {
       return MEASUREMENT_ACTION_MAP[action](event);
     },
+
+    onStackScrollChanging: (event, ownProps) => {
+      dispatch(triggerChangingStackScroll(event, ownProps.viewportIndex));
+    },
+  };
+};
+
+const mergeProps = (propsFromState, propsFromDispatch, ownProps) => {
+  return {
+    ...propsFromState,
+    ...propsFromDispatch,
+    ...ownProps,
+    imageIdIndex: propsFromState.imageIdIndex || ownProps.imageIdIndex,
+    eventListeners: [
+      {
+        target: 'cornerstone',
+        eventName: 'cornerstonetoolsstackscroll',
+        handler: e => {
+          propsFromDispatch.onStackScrollChanging(e, {
+            ...ownProps,
+            viewportIndex:
+              propsFromState.viewportIndex > -1
+                ? propsFromState.viewportIndex
+                : ownProps.viewportIndex,
+          });
+        },
+      },
+    ],
+    viewportIndex:
+      propsFromState.viewportIndex > -1
+        ? propsFromState.viewportIndex
+        : ownProps.viewportIndex,
   };
 };
 
 const ConnectedCornerstoneViewport = connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
+  mergeProps
 )(CornerstoneViewport);
 
 export default ConnectedCornerstoneViewport;

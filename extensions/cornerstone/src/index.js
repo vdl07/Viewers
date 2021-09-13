@@ -36,7 +36,8 @@ export default {
   preRegistration({ servicesManager, configuration = {} }) {
     init({ servicesManager, configuration });
   },
-  getViewportModule({ commandsManager }) {
+  getViewportModule(store) {
+    const { commandsManager } = store;
     const ExtendedOHIFCornerstoneViewport = props => {
       /**
        * TODO: This appears to be used to set the redux parameters for
@@ -49,7 +50,11 @@ export default {
         commandsManager.runCommand('jumpToImage', jumpData);
       };
       return (
-        <OHIFCornerstoneViewport {...props} onNewImage={onNewImageHandler} />
+        <OHIFCornerstoneViewport
+          {...props}
+          customProps={{ ...commandsManager._getAppState().pixylCustoms }}
+          onNewImage={onNewImageHandler}
+        />
       );
     };
 

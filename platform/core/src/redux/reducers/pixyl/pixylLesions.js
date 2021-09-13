@@ -2,7 +2,7 @@ import * as PixylLesionsActionType from '../../constants/PixylActionTypes';
 
 const defaultState = {
   pixylLesionLoading: false,
-  lesionsBySerie: [],
+  pixylLesions: undefined,
   pixylLesionLoaded: false,
   pixylLesionError: undefined,
 };
@@ -24,6 +24,25 @@ const pixylLesions = (state = defaultState, action) => {
         pixylLesionLoading: false,
         pixylLesionError: action.error,
       });
+    case PixylLesionsActionType.SHOW_HIDE_SEGMENTATION: {
+      const statePxylLesions = { ...state.pixylLesions };
+      for (const seriesInstanceUID in statePxylLesions) {
+        if (
+          action.seriesInstanceUID === undefined ||
+          action.seriesInstanceUID == seriesInstanceUID
+        ) {
+          const lastStateShowSeg =
+            statePxylLesions[seriesInstanceUID]['showSegmentation'];
+          statePxylLesions[seriesInstanceUID]['showSegmentation'] =
+            lastStateShowSeg === undefined || lastStateShowSeg === true
+              ? false
+              : true;
+        }
+      }
+      return Object.assign({}, state, {
+        pixylLesions: { ...statePxylLesions },
+      });
+    }
     default:
       return state;
   }

@@ -19,5 +19,30 @@ window.config = {
       },
     ],
   },
+  hotkeys: [
+    // ~ Global
+    {
+      commandName: 'enableMultiStackScroll',
+      label: 'Push to enable multi-stack scroll',
+      keys: ['ctrl'],
+      type: 'keypress',
+    },
+    {
+      commandName: 'disableMultiStackScroll',
+      label: 'Do not modify',
+      keys: ['ctrl'],
+      type: 'keyup',
+    },
+    {
+      commandName: 'showHideSegmentation',
+      label: 'show/hide selected series segmentation',
+      keys: ['s'],
+    },
+    {
+      commandName: 'showHideAllSegmentation',
+      label: 'show/hide all series segmentations',
+      keys: ['a'],
+    },
+  ],
   studyListFunctionsEnabled: true,
 };

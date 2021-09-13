@@ -5,9 +5,16 @@ export default class PixylLesionsList extends React.Component {
   static propTypes = {
     pixylLesionsSerie: PropTypes.object,
     onClickLesion: PropTypes.func,
+    onClickChangeVisibilityLesion: PropTypes.func,
+    showSegmentationState: PropTypes.bool,
   };
+
   render() {
-    const { pixylLesionsSerie, onClickLesion } = this.props;
+    const {
+      pixylLesionsSerie,
+      onClickLesion,
+      onClickChangeVisibilityLesion,
+    } = this.props;
     return (
       <table className="table table--striped table--hoverable">
         <thead className="table-head">
@@ -16,6 +23,7 @@ export default class PixylLesionsList extends React.Component {
             <th>Type</th>
             <th>Volume (mL)</th>
             <th style={{ width: '40%' }}>McDonald region</th>
+            <th></th>
             {/* <th>Anotomical region</th>
             <th>Vascular territory</th>
             <th>White matter trac</th> */}
@@ -25,12 +33,15 @@ export default class PixylLesionsList extends React.Component {
           {pixylLesionsSerie &&
             pixylLesionsSerie.msLesions &&
             pixylLesionsSerie.msLesions.length > 0 &&
+            pixylLesionsSerie.msLesions.map &&
             pixylLesionsSerie.msLesions.map((lesion, index) => {
               return (
                 <PixylLesionRow
                   key={index}
                   pixylLesion={lesion}
                   onClickLesion={onClickLesion}
+                  onClickChangeVisibilityLesion={onClickChangeVisibilityLesion}
+                  showSegmentationState={this.props.showSegmentationState}
                 />
               );
             })}
@@ -44,9 +55,30 @@ class PixylLesionRow extends React.Component {
   static propTypes = {
     pixylLesion: PropTypes.object,
     onClickLesion: PropTypes.func,
+    onClickChangeVisibilityLesion: PropTypes.func,
+    showSegmentationState: PropTypes.bool,
   };
+
+  state = {
+    visible: true,
+    showSegmentationState: true,
+  };
+
+  componentDidUpdate() {
+    if (this.state.showSegmentationState != this.props.showSegmentationState) {
+      this.setState({
+        showSegmentationState: this.props.showSegmentationState,
+        visible: this.props.showSegmentationState,
+      });
+    }
+  }
+
   render() {
-    const { pixylLesion, onClickLesion } = this.props;
+    const {
+      pixylLesion,
+      onClickLesion,
+      onClickChangeVisibilityLesion,
+    } = this.props;
     return (
       <tr
         onClick={() => {
@@ -63,6 +95,22 @@ class PixylLesionRow extends React.Component {
             : '-'}
         </td>
         <td>{pixylLesion.regionMcDo && pixylLesion.regionMcDo.region_name}</td>
+        <td>
+          <button
+            title={this.state.visible ? 'Hide' : 'Show'}
+            onClick={() => {
+              const newVisibleState = !this.state.visible;
+              this.setState({ visible: newVisibleState });
+              onClickChangeVisibilityLesion &&
+                onClickChangeVisibilityLesion(
+                  pixylLesion.label,
+                  newVisibleState
+                );
+            }}
+          >
+            {this.state.visible ? 'Hide' : 'Show'}
+          </button>
+        </td>
         {/* <td>?</td>
         <td>?</td>
         <td>?</td> */}

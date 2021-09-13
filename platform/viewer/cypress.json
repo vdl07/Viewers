@@ -1,5 +1,5 @@
 {
-  "baseUrl": "http://localhost:3000",
+  "baseUrl": "http://localhost",
   "chromeWebSecurity": false,
   "waitForAnimations": true,
   "defaultCommandTimeout": 10000,

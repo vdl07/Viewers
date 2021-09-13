@@ -3,10 +3,12 @@ import { bindActionCreators } from 'redux';
 import PixylLesionsPanel from './PixylLesionsPanel';
 import { redux } from '@ohif/core';
 
-const { getPixylLesions } = redux.actions;
+const { getPixylLesions, setViewportActive, setLayout } = redux.actions;
 
 const mapDispatchToProps = dispatch => ({
   getPixylLesions: bindActionCreators(getPixylLesions, dispatch),
+  setViewportActive: bindActionCreators(setViewportActive, dispatch),
+  setLayout: bindActionCreators(setLayout, dispatch),
 });
 
 function mapStateToProps(state) {

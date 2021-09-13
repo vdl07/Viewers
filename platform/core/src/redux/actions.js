@@ -2,7 +2,7 @@
  *  https://redux.js.org/basics/actions#action-creators
  */
 
- import {
+import {
   CLEAR_VIEWPORT,
   SET_ACTIVE_SPECIFIC_DATA,
   SET_SERVERS,
@@ -17,8 +17,13 @@ import {
   ERROR_GET_PIXYL_LESIONS,
   GET_PIXYL_LESIONS,
   LOADING_GET_PIXYL_LESIONS,
+  SHOW_HIDE_SEGMENTATION,
 } from './constants/PixylActionTypes';
 import * as PixylService from '../services/PixylService';
+import {
+  CHANGING_STACK_SCROLL,
+  MULTIPLE_STACK_SCROLL,
+} from './constants/CustomActionTypes';
 
 /**
  * The definition of a viewport layout.
@@ -128,11 +133,10 @@ export const setServers = servers => ({
   servers,
 });
 
-export const getPixylLesions = studyUUID => {
+export const getPixylLesions = study => {
   return dispatch => {
     dispatch({ type: LOADING_GET_PIXYL_LESIONS });
-
-    return PixylService.getPixylLesions(studyUUID)
+    return PixylService.getPixylLesions(study)
       .then(res => {
         dispatch({ type: GET_PIXYL_LESIONS, pixylLesions: res });
         return;
@@ -142,6 +146,18 @@ export const getPixylLesions = studyUUID => {
         return Promise.reject(e);
       });
   };
+};
+
+export const triggerChangingStackScroll = (event, viewportBaseIndex) => {
+  return { type: CHANGING_STACK_SCROLL, event, viewportBaseIndex };
+};
+
+export const multipleStackScroll = enabled => {
+  return { type: MULTIPLE_STACK_SCROLL, enabled };
+};
+
+export const showHideSegmentation = seriesInstanceUID => {
+  return { type: SHOW_HIDE_SEGMENTATION, seriesInstanceUID };
 };
 
 const actions = {
@@ -169,6 +185,9 @@ const actions = {
    * EXTENSIONS
    */
   getPixylLesions,
+  triggerChangingStackScroll,
+  multipleStackScroll,
+  showHideSegmentation,
 };
 
 export default actions;

@@ -6,6 +6,7 @@ import studies from './studies';
 import timepointManager from './timepointManager';
 import viewports from './viewports';
 import pixylLesions from './pixyl/pixylLesions';
+import pixylCustoms from './pixyl/customs';
 
 const reducers = {
   extensions,
@@ -16,6 +17,7 @@ const reducers = {
   timepointManager,
   viewports,
   pixylLesions,
+  pixylCustoms,
 };
 
 export default reducers;
