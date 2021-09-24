@@ -135,14 +135,15 @@ export const setServers = servers => ({
 
 export const getPixylLesions = study => {
   return dispatch => {
-    dispatch({ type: LOADING_GET_PIXYL_LESIONS });
-    return PixylService.getPixylLesions(study)
+    const promisePixylLesion = PixylService.getPixylLesions(study);
+    dispatch({ type: LOADING_GET_PIXYL_LESIONS, promisePixylLesion });
+    return promisePixylLesion
       .then(res => {
-        dispatch({ type: GET_PIXYL_LESIONS, pixylLesions: res });
-        return;
+        dispatch({ type: GET_PIXYL_LESIONS, pixylLesions: res || {} });
+        return res;
       })
       .catch(e => {
-        dispatch({ type: ERROR_GET_PIXYL_LESIONS });
+        dispatch({ type: ERROR_GET_PIXYL_LESIONS, error: e });
         return Promise.reject(e);
       });
   };

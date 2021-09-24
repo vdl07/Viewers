@@ -5,7 +5,8 @@ import PixylLesionsList from './PixylLesionsList';
 import cornerstone from 'cornerstone-core';
 import cornerstoneTools from 'cornerstone-tools';
 import DICOMSegTempCrosshairsTool from './duplicate/DICOMSegTempCrosshairsTool';
-import { utils } from '@ohif/core';
+import { utils, studies } from '@ohif/core';
+const { retrieveStudiesMetadata } = studies;
 const { studyMetadataManager } = utils;
 const scroll = cornerstoneTools.import('util/scroll');
 
@@ -22,6 +23,8 @@ export default class PixylLesionsPanel extends React.Component {
     setViewportActive: PropTypes.func.isRequired,
     setLayout: PropTypes.func.isRequired,
     pixylLesionLoaded: PropTypes.bool,
+    setViewportSpecificData: PropTypes.func,
+    server: PropTypes.object,
   };
 
   state = {
@@ -35,16 +38,92 @@ export default class PixylLesionsPanel extends React.Component {
       this.props.studiesStore[0].StudyInstanceUID &&
       lastStudyInstanceUIDLoaded !== this.props.studiesStore[0].StudyInstanceUID
     ) {
-      this.props.setLayout({
-        numRows: 1,
-        numColumns: 2,
-        viewports: [{ plugin: 'cornerstone' }, { plugin: 'cornerstone' }],
-      });
       lastStudyInstanceUIDLoaded = this.props.studiesStore[0].StudyInstanceUID;
-      this.props.getPixylLesions(this.props.studiesStore);
+      const { setViewportSpecificData } = this.props;
+      this.props
+        .getPixylLesions(this.props.studiesStore)
+        .then(msLesionsBySeries => {
+          if (!msLesionsBySeries) {
+            this.props.setLayout({
+              numRows: 1,
+              numColumns: 1,
+              viewports: [{ plugin: 'cornerstone' }],
+            });
+            return;
+          }
+          const seriesSpecificFilters = {
+            seriesInstanceUID: Object.keys(msLesionsBySeries).join(','),
+          };
+          retrieveStudiesMetadata(
+            this.props.server,
+            [this.props.studiesStore[0].StudyInstanceUID],
+            seriesSpecificFilters,
+            true
+          ).then(result => {
+            if (
+              result &&
+              result.length > 0 &&
+              result[0] &&
+              result[0].displaySets
+            ) {
+              const resultMR = result[0].series.filter(f => f.Modality == 'MR');
+              resultMR.sort((a, b) => {
+                const dateA = a.instances[0].metadata.SeriesDate;
+                const dateB = b.instances[0].metadata.SeriesDate;
+                const aNumber = Number(`${dateA}`);
+                const bNumber = Number(`${dateB}`);
+                return aNumber - bNumber;
+              });
+              if (resultMR.length > 1) {
+                const enabledElements = cornerstone.getEnabledElements();
+                // [1, 0].forEach(index => {
+                //   const enabledElement = enabledElements[index];
+                //   if (enabledElement && enabledElement.element) {
+                //     let viewport = cornerstone.getViewport(
+                //       enabledElement.element
+                //     );
+                //     const serieIndex = resultMR[index];
+                //     const midInstance =
+                //       serieIndex.instances[
+                //         Math.floor(serieIndex.instances.length / 2)
+                //       ];
+                //     viewport.voi = {
+                //       windowWidth: Number(midInstance.metadata.WindowWidth),
+                //       windowCenter: Number(midInstance.metadata.WindowCenter),
+                //     };
+                //     cornerstone.setViewport(enabledElement.element, viewport);
+                //   }
+                // });
+                this.props.setLayout({
+                  numRows: 1,
+                  numColumns: 2,
+                  viewports: [
+                    { plugin: 'cornerstone' },
+                    { plugin: 'cornerstone' },
+                  ],
+                });
+                setViewportSpecificData(
+                  0,
+                  result[0].displaySets.find(
+                    f => f.SeriesInstanceUID === resultMR[0].SeriesInstanceUID
+                  )
+                );
+                setViewportSpecificData(
+                  1,
+                  result[0].displaySets.find(
+                    f => f.SeriesInstanceUID === resultMR[1].SeriesInstanceUID
+                  )
+                );
+              }
+            }
+          });
+        });
     }
 
-    if (this.props.pixylLesions.pixylLesionLoaded) {
+    if (
+      this.props.pixylLesions.pixylLesionLoaded &&
+      this.props.pixylLesions.pixylLesions
+    ) {
       const seriesUUIDToUpdate = Object.keys(
         this.props.pixylLesions.pixylLesions
       ).filter(s => {
@@ -120,6 +199,14 @@ export default class PixylLesionsPanel extends React.Component {
     );
   }
 
+  segmentLabelMatch(metadataRow, segmentNumber) {
+    return (
+      metadataRow &&
+      metadataRow.SegmentLabel &&
+      metadataRow.SegmentLabel.includes('' + segmentNumber)
+    );
+  }
+
   showHideSegmentation(isVisible, segmentNumber, serieUUID) {
     const { labelmaps3D } = this.getBrushStackState(serieUUID);
     const segmentNumberToHide = [];
@@ -130,9 +217,7 @@ export default class PixylLesionsPanel extends React.Component {
         ({ metadata }) =>
           metadata &&
           metadata.data &&
-          metadata.data.some(
-            d => d && d.SegmentLabel == `segment ${segmentNumber}`
-          )
+          metadata.data.some(d => this.segmentLabelMatch(d, segmentNumber))
       );
     }
 
@@ -146,7 +231,9 @@ export default class PixylLesionsPanel extends React.Component {
           labelmap3D.metadata.data &&
           labelmap3D.metadata.data.forEach(d => {
             let segmentNumberLocalExtract =
-              d && d.SegmentLabel && d.SegmentLabel.match(/[0-9]+/);
+              d &&
+              ((d.SegmentLabel && d.SegmentLabel.match(/[0-9]+/)) ||
+                d.SegmentNumber);
             if (segmentNumberLocalExtract) {
               segmentNumberToHide.push(segmentNumberLocalExtract);
             }
@@ -182,8 +269,8 @@ export default class PixylLesionsPanel extends React.Component {
           labelMap3D.labelmaps2D &&
           labelMap3D.metadata &&
           labelMap3D.metadata.data &&
-          labelMap3D.metadata.data.some(
-            d => d && d.SegmentLabel == `segment ${segmentNumber}`
+          labelMap3D.metadata.data.some(d =>
+            this.segmentLabelMatch(d, segmentNumber)
           ) &&
           labelMap3D.labelmaps2D.forEach((labelMap2D, index) => {
             validIndexList.push({ index2D: index, index3D });

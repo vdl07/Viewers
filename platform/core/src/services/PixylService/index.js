@@ -5,12 +5,29 @@ const { studyMetadataManager } = utils;
 export function getPixylLesions(studiesStore) {
   const firstStudyStore = studiesStore[0];
   const studyUUID = firstStudyStore.StudyInstanceUID;
+  return getPixylLesionsByStudyUUID(studiesStore, studyUUID);
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function getPixylLesionsByStudyUUID(studiesStore, studyUUID) {
   return window
-    .fetch('http://localhost/laguiole/study/' + studyUUID)
+    .fetch('http://localhost/livaro/study/' + studyUUID)
     .then(res => handleResponse(res))
     .then(resJson => {
       if (!resJson.msLesionsBySerie) {
         return Promise.resolve();
+      }
+      if (
+        Object.keys(resJson.msLesionsBySerie).some(
+          k => resJson.msLesionsBySerie[k].analysisStatus !== 'AVAILABLE'
+        )
+      ) {
+        return sleep(5000).then(() => {
+          return getPixylLesionsByStudyUUID(studiesStore, studyUUID);
+        });
       }
       return new Promise(async (resolve, reject) => {
         for (const serieInstanceUID in resJson.msLesionsBySerie) {
@@ -42,7 +59,8 @@ export function getPixylLesions(studiesStore) {
         }
         resolve(resJson.msLesionsBySerie);
       });
-    });
+    })
+    .catch(() => {});
 }
 
 function _getReferencedSegDisplaysets(StudyInstanceUID, SeriesInstanceUID) {

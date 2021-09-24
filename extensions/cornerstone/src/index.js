@@ -9,11 +9,30 @@ const Component = React.lazy(() => {
   return import('./OHIFCornerstoneViewport');
 });
 
+const Loading = (
+  <div
+    style={{
+      color: 'var(--default-color)',
+      fontSize: '30px',
+      textAlign: 'center',
+      width: '100%',
+    }}
+  >
+    Pixyl analysis is running...
+  </div>
+);
+
 const OHIFCornerstoneViewport = props => {
-  return (
-    <React.Suspense fallback={<div>Loading...</div>}>
+  // eslint-disable-next-line react/prop-types
+  const customProps = props && props.customProps;
+  return !customProps ||
+    !customProps.pixylLesions ||
+    customProps.pixylLesions.pixylLesionLoaded ? (
+    <React.Suspense fallback={Loading}>
       <Component {...props} />
     </React.Suspense>
+  ) : (
+    Loading
   );
 };
 
@@ -52,7 +71,10 @@ export default {
       return (
         <OHIFCornerstoneViewport
           {...props}
-          customProps={{ ...commandsManager._getAppState().pixylCustoms }}
+          customProps={{
+            pixylLesions: commandsManager._getAppState().pixylLesions,
+            ...commandsManager._getAppState().pixylCustoms,
+          }}
           onNewImage={onNewImageHandler}
         />
       );

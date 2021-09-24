@@ -22,7 +22,7 @@ const pixylLesions = (state = defaultState, action) => {
     case PixylLesionsActionType.ERROR_GET_PIXYL_LESIONS:
       return Object.assign({}, state, {
         pixylLesionLoading: false,
-        pixylLesionError: action.error,
+        pixylLesionError: action.error || {},
       });
     case PixylLesionsActionType.SHOW_HIDE_SEGMENTATION: {
       const statePxylLesions = { ...state.pixylLesions };

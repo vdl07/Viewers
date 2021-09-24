@@ -3,17 +3,31 @@ import { bindActionCreators } from 'redux';
 import PixylLesionsPanel from './PixylLesionsPanel';
 import { redux } from '@ohif/core';
 
-const { getPixylLesions, setViewportActive, setLayout } = redux.actions;
+const {
+  getPixylLesions,
+  setViewportActive,
+  setLayout,
+  setViewportSpecificData,
+} = redux.actions;
 
 const mapDispatchToProps = dispatch => ({
   getPixylLesions: bindActionCreators(getPixylLesions, dispatch),
   setViewportActive: bindActionCreators(setViewportActive, dispatch),
+
   setLayout: bindActionCreators(setLayout, dispatch),
+  setViewportSpecificData: bindActionCreators(
+    setViewportSpecificData,
+    dispatch
+  ),
 });
+
+const isActive = a => a.active === true;
 
 function mapStateToProps(state) {
   const { pixylLesions, studies, viewports } = state;
-  return { pixylLesions, studies, viewports };
+  const activeServer =
+    state.servers && state.servers && state.servers.servers.find(isActive);
+  return { pixylLesions, studies, viewports, server: activeServer };
 }
 
 /**

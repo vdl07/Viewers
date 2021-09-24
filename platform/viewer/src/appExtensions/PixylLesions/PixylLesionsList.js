@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Icon } from '@ohif/ui';
 
 export default class PixylLesionsList extends React.Component {
   static propTypes = {
@@ -96,7 +97,22 @@ class PixylLesionRow extends React.Component {
         </td>
         <td>{pixylLesion.regionMcDo && pixylLesion.regionMcDo.region_name}</td>
         <td>
-          <button
+          <Icon
+            className={`eye-icon ${this.state.visible && '--visible'}`}
+            name={this.state.visible ? 'eye' : 'eye-closed'}
+            width="20px"
+            height="20px"
+            onClick={() => {
+              const newVisibleState = !this.state.visible;
+              this.setState({ visible: newVisibleState });
+              onClickChangeVisibilityLesion &&
+                onClickChangeVisibilityLesion(
+                  pixylLesion.label,
+                  newVisibleState
+                );
+            }}
+          />
+          {/* <button
             title={this.state.visible ? 'Hide' : 'Show'}
             onClick={() => {
               const newVisibleState = !this.state.visible;
@@ -109,7 +125,7 @@ class PixylLesionRow extends React.Component {
             }}
           >
             {this.state.visible ? 'Hide' : 'Show'}
-          </button>
+          </button> */}
         </td>
         {/* <td>?</td>
         <td>?</td>
