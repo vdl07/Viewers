@@ -54,7 +54,7 @@ import measureTargetNe from './icons/measure-target-ne.svg';
 import measureTargetUn from './icons/measure-target-un.svg';
 import measureTemp from './icons/measure-temp.svg';
 import objectGroup from './icons/object-group.svg';
-import ohifLogo from './icons/ohif-logo.svg';
+//import ohifLogo from './icons/ohif-logo.svg';
 import ohifTextLogo from './icons/ohif-text-logo.svg';
 import oval from './icons/oval.svg';
 import palette from './icons/palette.svg';
@@ -89,6 +89,7 @@ import youtube from './icons/youtube.svg';
 import eye from './icons/eye.svg';
 import eyeClosed from './icons/eye-closed.svg';
 import envelopeSquare from './icons/envelope-square.svg';
+import pixylLogo from './icons/Pixyl_logo_white_transparent.svg';
 
 const ICONS = {
   eye,
@@ -132,7 +133,7 @@ const ICONS = {
   'power-off': powerOff,
   'inline-edit': inlineEdit,
   list,
-  'ohif-logo': ohifLogo,
+  'ohif-logo': pixylLogo,
   'ohif-text-logo': ohifTextLogo,
   lock,
   play,

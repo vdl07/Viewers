@@ -1,4 +1,4 @@
-import { ConnectedPixylLesionsPanel } from './ConnectedPixylLesionsPanel';
+import ConnectedPixylLesionsPanel from './ConnectedPixylLesionsPanel';
 import toolbarModule from './toolbarModule.js';
 import React from 'react';
 import commandsModule from './commandsModule.js';
@@ -26,13 +26,18 @@ export default {
   /**
    * MODULE GETTERS
    */
-  getPanelModule({ servicesManager, commandsManager }) {
-    const ExtendedConnectedPixylLesionsPanel = propsIncluded => (
-      <ConnectedPixylLesionsPanel
-        commandsManager={commandsManager}
-        studiesStore={propsIncluded.studies}
-      />
-    );
+  getPanelModule({ servicesManager, commandsManager, api }) {
+    const ExtendedConnectedPixylLesionsPanel = propsIncluded => {
+      const { activeContexts } = api.hooks.useAppContext();
+      return (
+        <ConnectedPixylLesionsPanel
+          commandsManager={commandsManager}
+          studiesStore={propsIncluded.studies}
+          contexts={api.contexts}
+          activeContexts={activeContexts}
+        />
+      );
+    };
     const panelModule = {
       menuOptions: [
         {

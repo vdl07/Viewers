@@ -64,11 +64,24 @@ export default function getSopClassHandlerModule({ servicesManager }) {
         metadata,
       };
 
-      segDisplaySet.getSourceDisplaySet = function(studies, activateLabelMap = true, onDisplaySetLoadFailureHandler) {
-        return getSourceDisplaySet(studies, segDisplaySet, activateLabelMap, onDisplaySetLoadFailureHandler);
+      segDisplaySet.getSourceDisplaySet = function(
+        studies,
+        activateLabelMap = true,
+        onDisplaySetLoadFailureHandler
+      ) {
+        return getSourceDisplaySet(
+          studies,
+          segDisplaySet,
+          activateLabelMap,
+          onDisplaySetLoadFailureHandler
+        );
       };
 
-      segDisplaySet.load = async function(referencedDisplaySet, studies, noRefresh) {
+      segDisplaySet.load = async function(
+        referencedDisplaySet,
+        studies,
+        noRefresh
+      ) {
         segDisplaySet.isLoaded = true;
         const { StudyInstanceUID } = referencedDisplaySet;
         const segArrayBuffer = await DicomLoaderService.findDicomDataPromise(
@@ -83,6 +96,9 @@ export default function getSopClassHandlerModule({ servicesManager }) {
           StudyInstanceUID,
           referencedDisplaySet.SeriesInstanceUID
         );
+        if (imageIds.length === 0) {
+          return;
+        }
 
         const results = await _parseSeg(segArrayBuffer, imageIds);
         if (results === undefined) {
@@ -129,6 +145,7 @@ export default function getSopClassHandlerModule({ servicesManager }) {
             noRefresh
           );
         }
+        return segMetadata;
       };
 
       return segDisplaySet;
@@ -152,6 +169,9 @@ function _getImageIdsForDisplaySet(
   const study = studies.find(
     study => study.StudyInstanceUID === StudyInstanceUID
   );
+  if (!study) {
+    return [];
+  }
 
   const displaySets = study.displaySets.filter(displaySet => {
     return displaySet.SeriesInstanceUID === SeriesInstanceUID;

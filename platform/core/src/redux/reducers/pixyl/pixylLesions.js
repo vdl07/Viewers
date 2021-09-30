@@ -5,6 +5,8 @@ const defaultState = {
   pixylLesions: undefined,
   pixylLesionLoaded: false,
   pixylLesionError: undefined,
+  pixylWaitingUploadSegmentation: false,
+  pixylAnalysisRunning: false,
 };
 
 const pixylLesions = (state = defaultState, action) => {
@@ -18,6 +20,14 @@ const pixylLesions = (state = defaultState, action) => {
     case PixylLesionsActionType.LOADING_GET_PIXYL_LESIONS:
       return Object.assign({}, state, {
         pixylLesionLoading: true,
+      });
+    case PixylLesionsActionType.WAITING_PIXYL_ANALYSIS:
+      return Object.assign({}, state, {
+        pixylAnalysisRunning: true,
+      });
+    case PixylLesionsActionType.WAITING_UPLOAD_SEGMENTATION:
+      return Object.assign({}, state, {
+        pixylWaitingUploadSegmentation: true,
       });
     case PixylLesionsActionType.ERROR_GET_PIXYL_LESIONS:
       return Object.assign({}, state, {

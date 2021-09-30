@@ -42,4 +42,4 @@ const connectedPixylLesionsPanel = connect(
   mapDispatchToProps,
   mergeProps
 )(PixylLesionsPanel);
-export { connectedPixylLesionsPanel as ConnectedPixylLesionsPanel };
+export default connectedPixylLesionsPanel;

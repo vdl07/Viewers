@@ -3,36 +3,18 @@ import init from './init.js';
 import commandsModule from './commandsModule.js';
 import toolbarModule from './toolbarModule.js';
 import CornerstoneViewportDownloadForm from './CornerstoneViewportDownloadForm';
+import ConnectedPixylCornerstoneViewport from './pixyl/ConnectedPixylCornerstoneViewport';
 import { version } from '../package.json';
 
 const Component = React.lazy(() => {
   return import('./OHIFCornerstoneViewport');
 });
 
-const Loading = (
-  <div
-    style={{
-      color: 'var(--default-color)',
-      fontSize: '30px',
-      textAlign: 'center',
-      width: '100%',
-    }}
-  >
-    Pixyl analysis is running...
-  </div>
-);
-
 const OHIFCornerstoneViewport = props => {
-  // eslint-disable-next-line react/prop-types
-  const customProps = props && props.customProps;
-  return !customProps ||
-    !customProps.pixylLesions ||
-    customProps.pixylLesions.pixylLesionLoaded ? (
-    <React.Suspense fallback={Loading}>
+  return (
+    <React.Suspense fallback={<div>Loading...</div>}>
       <Component {...props} />
     </React.Suspense>
-  ) : (
-    Loading
   );
 };
 
@@ -68,7 +50,7 @@ export default {
         jumpData.refreshViewports = false;
         commandsManager.runCommand('jumpToImage', jumpData);
       };
-      return (
+      const OHIFComponent = (
         <OHIFCornerstoneViewport
           {...props}
           customProps={{
@@ -78,6 +60,7 @@ export default {
           onNewImage={onNewImageHandler}
         />
       );
+      return <ConnectedPixylCornerstoneViewport BaseViewport={OHIFComponent} />;
     };
 
     return ExtendedOHIFCornerstoneViewport;

@@ -11,7 +11,9 @@ export default async function loadSegmentation(
   labelmapSegments,
   noRefresh
 ) {
-  const { setters } = cornerstoneTools.getModule('segmentation');
+  const { setters, configuration } = cornerstoneTools.getModule('segmentation');
+  configuration.outlineWidth = 1;
+  configuration.fillAlpha = 0.1;
 
   // TODO: Could define a color LUT based on colors in the SEG.
   const labelmapIndex = _getNextLabelmapIndex(imageIds[0]);

@@ -25,7 +25,16 @@ export default class PixylLesionsPanel extends React.Component {
     pixylLesionLoaded: PropTypes.bool,
     setViewportSpecificData: PropTypes.func,
     server: PropTypes.object,
+    activeContexts: PropTypes.arrayOf(PropTypes.string),
+    contexts: PropTypes.object,
   };
+
+  isVTK() {
+    return this.props.activeContexts.includes(this.props.contexts.VTK);
+  }
+  isCornerstone() {
+    return this.props.activeContexts.includes(this.props.contexts.CORNERSTONE);
+  }
 
   state = {
     showHideSegmentationStateBySerie: {},
@@ -38,8 +47,14 @@ export default class PixylLesionsPanel extends React.Component {
       this.props.studiesStore[0].StudyInstanceUID &&
       lastStudyInstanceUIDLoaded !== this.props.studiesStore[0].StudyInstanceUID
     ) {
+      const action = this.props.setLayout({
+        numRows: 1,
+        numColumns: 1,
+        viewports: [{ plugin: 'cornerstone' }],
+      });
+      window.store.dispatch(action);
       lastStudyInstanceUIDLoaded = this.props.studiesStore[0].StudyInstanceUID;
-      const { setViewportSpecificData } = this.props;
+      // const { setViewportSpecificData } = this.props;
       this.props
         .getPixylLesions(this.props.studiesStore)
         .then(msLesionsBySeries => {
@@ -66,16 +81,16 @@ export default class PixylLesionsPanel extends React.Component {
               result[0] &&
               result[0].displaySets
             ) {
-              const resultMR = result[0].series.filter(f => f.Modality == 'MR');
-              resultMR.sort((a, b) => {
-                const dateA = a.instances[0].metadata.SeriesDate;
-                const dateB = b.instances[0].metadata.SeriesDate;
-                const aNumber = Number(`${dateA}`);
-                const bNumber = Number(`${dateB}`);
-                return aNumber - bNumber;
-              });
-              if (resultMR.length > 1) {
-                const enabledElements = cornerstone.getEnabledElements();
+              // const resultMR = result[0].series.filter(f => f.Modality == 'MR');
+              // resultMR.sort((a, b) => {
+              //   const dateA = a.instances[0].metadata.SeriesDate;
+              //   const dateB = b.instances[0].metadata.SeriesDate;
+              //   const aNumber = Number(`${dateA}`);
+              //   const bNumber = Number(`${dateB}`);
+              //   return aNumber - bNumber;
+              // });
+              if (Object.keys(msLesionsBySeries).length > 1) {
+                // const enabledElements = cornerstone.getEnabledElements();
                 // [1, 0].forEach(index => {
                 //   const enabledElement = enabledElements[index];
                 //   if (enabledElement && enabledElement.element) {
@@ -102,18 +117,18 @@ export default class PixylLesionsPanel extends React.Component {
                     { plugin: 'cornerstone' },
                   ],
                 });
-                setViewportSpecificData(
-                  0,
-                  result[0].displaySets.find(
-                    f => f.SeriesInstanceUID === resultMR[0].SeriesInstanceUID
-                  )
-                );
-                setViewportSpecificData(
-                  1,
-                  result[0].displaySets.find(
-                    f => f.SeriesInstanceUID === resultMR[1].SeriesInstanceUID
-                  )
-                );
+                // setViewportSpecificData(
+                //   0,
+                //   result[0].displaySets.find(
+                //     f => f.SeriesInstanceUID === resultMR[0].SeriesInstanceUID
+                //   )
+                // );
+                // setViewportSpecificData(
+                //   1,
+                //   result[0].displaySets.find(
+                //     f => f.SeriesInstanceUID === resultMR[1].SeriesInstanceUID
+                //   )
+                // );
               }
             }
           });
@@ -231,9 +246,7 @@ export default class PixylLesionsPanel extends React.Component {
           labelmap3D.metadata.data &&
           labelmap3D.metadata.data.forEach(d => {
             let segmentNumberLocalExtract =
-              d &&
-              ((d.SegmentLabel && d.SegmentLabel.match(/[0-9]+/)) ||
-                d.SegmentNumber);
+              d && d.SegmentLabel && d.SegmentLabel.match(/[0-9]+/);
             if (segmentNumberLocalExtract) {
               segmentNumberToHide.push(segmentNumberLocalExtract);
             }
@@ -258,8 +271,6 @@ export default class PixylLesionsPanel extends React.Component {
   }
 
   focusLesionsOnViewport(segmentNumber, serieUUID) {
-    const element = this.getEnabledElement(serieUUID);
-
     const validIndexList = [];
     const maps3D = this.getLabelMaps3D(serieUUID);
     const hasOneSegmentPerFile = this.hasOneSegmentPerFile(maps3D);
@@ -297,19 +308,68 @@ export default class PixylLesionsPanel extends React.Component {
         : prev;
     });
 
-    const toolState = cornerstoneTools.getToolState(element, 'stack');
+    if (this.isCornerstone()) {
+      this.addCrosshair(
+        serieUUID,
+        closest,
+        segmentNumber,
+        hasOneSegmentPerFile
+      );
 
+      const element = this.getEnabledElement(serieUUID);
+      const toolState = cornerstoneTools.getToolState(element, 'stack');
+      if (!toolState) return;
+
+      const imageIds = toolState.data[0].imageIds;
+      const imageId = imageIds[closest.index2D];
+      const frameIndex = imageIds.indexOf(imageId);
+
+      const SOPInstanceUID = cornerstone.metaData.get(
+        'SOPInstanceUID',
+        imageId
+      );
+      const StudyInstanceUID = cornerstone.metaData.get(
+        'StudyInstanceUID',
+        imageId
+      );
+
+      const data = {
+        SOPInstanceUID,
+        StudyInstanceUID,
+        activeViewportIndex: parseInt(this.getActiveViewportIndex(serieUUID)),
+        frameIndex,
+        refreshViewports: true,
+      };
+      this.props.commandsManager.runCommand('jumpToImage', data);
+      scroll(element, 1);
+      scroll(element, -1);
+    }
+
+    if (this.isVTK()) {
+      const labelMaps3D = this.getActiveLabelMaps3D(serieUUID);
+      const currentDisplaySet = this.getCurrentDisplaySet(serieUUID);
+      const frame = labelMaps3D.labelmaps2D[closest.index2D];
+      const data = {
+        studies: this.props.studiesStore,
+        StudyInstanceUID: currentDisplaySet.StudyInstanceUID,
+        displaySetInstanceUID: currentDisplaySet.displaySetInstanceUID,
+        SOPClassUID: this.getActiveViewport(serieUUID).sopClassUIDs[0],
+        SOPInstanceUID: currentDisplaySet.SOPInstanceUID,
+        segmentNumber,
+        frameIndex: closest.index2D,
+        frame,
+      };
+      this.props.commandsManager.runCommand('jumpToSlice', data);
+    }
+  }
+
+  addCrosshair(serieUUID, closest, segmentNumber, hasOneSegmentPerFile) {
+    const element = this.getEnabledElement(serieUUID);
+    const toolState = cornerstoneTools.getToolState(element, 'stack');
     if (!toolState) return;
 
     const imageIds = toolState.data[0].imageIds;
     const imageId = imageIds[closest.index2D];
-    const frameIndex = imageIds.indexOf(imageId);
-
-    const SOPInstanceUID = cornerstone.metaData.get('SOPInstanceUID', imageId);
-    const StudyInstanceUID = cornerstone.metaData.get(
-      'StudyInstanceUID',
-      imageId
-    );
 
     DICOMSegTempCrosshairsTool.addCrosshair(
       element,
@@ -317,17 +377,6 @@ export default class PixylLesionsPanel extends React.Component {
       hasOneSegmentPerFile ? 1 : segmentNumber,
       closest.index3D
     );
-
-    const data = {
-      SOPInstanceUID,
-      StudyInstanceUID,
-      activeViewportIndex: parseInt(this.getActiveViewportIndex(serieUUID)),
-      frameIndex,
-      refreshViewports: true,
-    };
-    this.props.commandsManager.runCommand('jumpToImage', data);
-    scroll(element, 1);
-    scroll(element, -1);
   }
 
   getActiveViewportIndex(serieUUID) {
@@ -346,6 +395,17 @@ export default class PixylLesionsPanel extends React.Component {
       ? this.props.viewports.activeViewportIndex
       : 0;
     return index;
+  }
+
+  getCurrentDisplaySet(serieUUID) {
+    const { StudyInstanceUID, displaySetInstanceUID } = this.getActiveViewport(
+      serieUUID
+    );
+    const studyMetadata = studyMetadataManager.get(StudyInstanceUID);
+    const allDisplaySets = studyMetadata.getDisplaySets();
+    return allDisplaySets.find(
+      ds => ds.displaySetInstanceUID === displaySetInstanceUID
+    );
   }
 
   getActiveLabelMaps2D(serieUUID) {

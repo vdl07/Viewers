@@ -5,14 +5,6 @@ const { studyMetadataManager } = utils;
 export function getPixylLesions(studiesStore) {
   const firstStudyStore = studiesStore[0];
   const studyUUID = firstStudyStore.StudyInstanceUID;
-  return getPixylLesionsByStudyUUID(studiesStore, studyUUID);
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function getPixylLesionsByStudyUUID(studiesStore, studyUUID) {
   return window
     .fetch('http://localhost/livaro/study/' + studyUUID)
     .then(res => handleResponse(res))
@@ -20,47 +12,70 @@ function getPixylLesionsByStudyUUID(studiesStore, studyUUID) {
       if (!resJson.msLesionsBySerie) {
         return Promise.resolve();
       }
-      if (
-        Object.keys(resJson.msLesionsBySerie).some(
-          k => resJson.msLesionsBySerie[k].analysisStatus !== 'AVAILABLE'
-        )
-      ) {
-        return sleep(5000).then(() => {
-          return getPixylLesionsByStudyUUID(studiesStore, studyUUID);
-        });
+      return resJson.msLesionsBySerie;
+    });
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export function loadSegmentation(studiesStore, lesionsBySerie) {
+  const firstStudyStore = studiesStore[0];
+  const studyUUID = firstStudyStore.StudyInstanceUID;
+  return new Promise(async (resolve, reject) => {
+    for (const serieInstanceUID in lesionsBySerie) {
+      let segmentationList = _getReferencedSegDisplaysets(
+        studyUUID,
+        serieInstanceUID
+      );
+      if (!segmentationList || segmentationList.length === 0) {
+        await sleep(500);
+        segmentationList = _getReferencedSegDisplaysets(
+          studyUUID,
+          serieInstanceUID
+        );
       }
-      return new Promise(async (resolve, reject) => {
-        for (const serieInstanceUID in resJson.msLesionsBySerie) {
-          const segmentationList = _getReferencedSegDisplaysets(
-            studyUUID,
-            serieInstanceUID
+      await Promise.all(
+        segmentationList.map((seg, index) => {
+          const referencedDisplaySet = metadata.StudyMetadata.getReferencedDisplaySet(
+            seg,
+            studiesStore
           );
-          await Promise.all(
-            segmentationList.map((seg, index) => {
-              const referencedDisplaySet = metadata.StudyMetadata.getReferencedDisplaySet(
-                seg,
-                studiesStore
-              );
-              if (!seg.isLoaded && referencedDisplaySet) {
-                try {
-                  return seg.load(
-                    referencedDisplaySet,
-                    studiesStore,
-                    index !== segmentationList.length - 1
-                  );
-                } catch (error) {
-                  seg.isLoaded = false;
-                  seg.loadError = true;
-                  return reject();
-                }
-              }
-            })
-          );
-        }
-        resolve(resJson.msLesionsBySerie);
-      });
-    })
-    .catch(() => {});
+          if (!seg.isLoaded && referencedDisplaySet && studiesStore) {
+            try {
+              return seg
+                .load(
+                  referencedDisplaySet,
+                  studiesStore,
+                  index !== segmentationList.length - 1
+                )
+                .then(metadataSeg => {
+                  lesionsBySerie &&
+                    lesionsBySerie[serieInstanceUID] &&
+                    lesionsBySerie[serieInstanceUID].msLesions &&
+                    lesionsBySerie[serieInstanceUID].msLesions.forEach(e => {
+                      const segment = metadataSeg.data.find(
+                        f =>
+                          f &&
+                          f.SegmentLabel &&
+                          f.SegmentLabel.includes('' + e.label)
+                      );
+                      e.lesionType =
+                        segment && segment.SegmentLabel.match(/[a-z]+/);
+                    });
+                });
+            } catch (error) {
+              seg.isLoaded = false;
+              seg.loadError = true;
+              return reject();
+            }
+          }
+        })
+      );
+    }
+    resolve();
+  });
 }
 
 function _getReferencedSegDisplaysets(StudyInstanceUID, SeriesInstanceUID) {

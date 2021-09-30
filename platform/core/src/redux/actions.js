@@ -16,6 +16,8 @@ import {
 import {
   ERROR_GET_PIXYL_LESIONS,
   GET_PIXYL_LESIONS,
+  WAITING_PIXYL_ANALYSIS,
+  WAITING_UPLOAD_SEGMENTATION,
   LOADING_GET_PIXYL_LESIONS,
   SHOW_HIDE_SEGMENTATION,
 } from './constants/PixylActionTypes';
@@ -133,14 +135,40 @@ export const setServers = servers => ({
   servers,
 });
 
-export const getPixylLesions = study => {
+export const getPixylLesions = studiesStore => {
+  const isNotReady = res => {
+    return Object.keys(res).some(k => res[k].analysisStatus !== 'AVAILABLE');
+  };
+  const retryUntilResultsReady = () => {
+    //waiting for ready analysis
+    return sleep(5000).then(() => {
+      return PixylService.getPixylLesions(studiesStore).then(res => {
+        if (isNotReady(res)) {
+          return retryUntilResultsReady();
+        }
+        window.location.reload();
+      });
+    });
+  };
+
   return dispatch => {
-    const promisePixylLesion = PixylService.getPixylLesions(study);
-    dispatch({ type: LOADING_GET_PIXYL_LESIONS, promisePixylLesion });
-    return promisePixylLesion
+    dispatch({ type: LOADING_GET_PIXYL_LESIONS });
+    return PixylService.getPixylLesions(studiesStore)
       .then(res => {
-        dispatch({ type: GET_PIXYL_LESIONS, pixylLesions: res || {} });
-        return res;
+        let promiseGetPixylLesions = Promise.resolve(res);
+        if (res && isNotReady(res)) {
+          dispatch({ type: WAITING_PIXYL_ANALYSIS });
+          promiseGetPixylLesions = retryUntilResultsReady();
+        }
+        return promiseGetPixylLesions.then(resReady => {
+          dispatch({ type: WAITING_UPLOAD_SEGMENTATION });
+          return PixylService.loadSegmentation(studiesStore, resReady).then(
+            () => {
+              dispatch({ type: GET_PIXYL_LESIONS, pixylLesions: resReady });
+              return resReady;
+            }
+          );
+        });
       })
       .catch(e => {
         dispatch({ type: ERROR_GET_PIXYL_LESIONS, error: e });
@@ -160,6 +188,10 @@ export const multipleStackScroll = enabled => {
 export const showHideSegmentation = seriesInstanceUID => {
   return { type: SHOW_HIDE_SEGMENTATION, seriesInstanceUID };
 };
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 const actions = {
   /**
