@@ -1,7 +1,6 @@
 import ConnectedPixylLesionsPanel from './ConnectedPixylLesionsPanel';
 import toolbarModule from './toolbarModule.js';
 import React from 'react';
-import commandsModule from './commandsModule.js';
 
 /**
  *
@@ -62,7 +61,7 @@ export default {
   getToolbarModule() {
     return toolbarModule;
   },
-  getCommandsModule({ commandsManager }) {
-    return commandsModule({ commandsManager });
-  },
+  // getCommandsModule({ commandsManager }) {
+  //   return commandsModule({ commandsManager });
+  // },
 };

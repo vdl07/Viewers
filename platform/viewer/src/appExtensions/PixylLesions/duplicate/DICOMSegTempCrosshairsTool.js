@@ -8,6 +8,7 @@ import cornerstoneTools, {
 import cornerstone from 'cornerstone-core';
 import drawCanvasCrosshairs from './utils/drawCanvasCrosshairs';
 import TOOL_NAMES from './TOOL_NAMES';
+import { DicomLoaderService } from '../../../../../core/src/utils';
 
 const { DICOM_SEG_TEMP_CROSSHAIRS_TOOL } = TOOL_NAMES;
 const { getters } = getModule('segmentation');
@@ -98,6 +99,16 @@ DICOMSegTempCrosshairsTool.addCrosshair = (
   xCenter /= count;
   yCenter /= count;
 
+  const centroid = { x: xCenter, y: yCenter };
+  DICOMSegTempCrosshairsTool.addCrosshairByCentroid(centroid, element, imageId);
+  return centroid;
+};
+
+DICOMSegTempCrosshairsTool.addCrosshairByCentroid = (
+  centroid,
+  element,
+  imageId
+) => {
   const globalToolState = globalImageIdSpecificToolStateManager.saveToolState();
 
   if (!globalToolState[imageId]) {
@@ -115,7 +126,7 @@ DICOMSegTempCrosshairsTool.addCrosshair = (
   const toolSpecificData =
     imageIdSpecificToolState[DICOM_SEG_TEMP_CROSSHAIRS_TOOL].data;
 
-  toolSpecificData.push({ center: { x: xCenter, y: yCenter }, segmentNumber });
+  toolSpecificData.push({ center: centroid });
 
   // Enable the tool if not enabled for the element.
 

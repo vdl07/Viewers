@@ -135,16 +135,25 @@ export const setServers = servers => ({
   servers,
 });
 
-export const getPixylLesions = studiesStore => {
-  const isNotReady = res => {
-    return Object.keys(res).some(k => res[k].analysisStatus !== 'AVAILABLE');
+export const getPixylAnalysis = studiesStore => {
+  const isNotReady = (res, dispatch) => {
+    const isNotReady = Object.keys(res.msLesionsBySerie).some(
+      k => res.msLesionsBySerie[k].analysisStatus !== 'AVAILABLE'
+    );
+    if (isNotReady) {
+      dispatch({
+        type: WAITING_PIXYL_ANALYSIS,
+        analysisResults: res,
+      });
+    }
+    return isNotReady;
   };
-  const retryUntilResultsReady = () => {
+  const retryUntilResultsReady = dispatch => {
     //waiting for ready analysis
     return sleep(5000).then(() => {
-      return PixylService.getPixylLesions(studiesStore).then(res => {
-        if (isNotReady(res)) {
-          return retryUntilResultsReady();
+      return PixylService.getPixylAnalysis(studiesStore).then(res => {
+        if (isNotReady(res, dispatch)) {
+          return retryUntilResultsReady(dispatch);
         }
         window.location.reload();
       });
@@ -153,21 +162,24 @@ export const getPixylLesions = studiesStore => {
 
   return dispatch => {
     dispatch({ type: LOADING_GET_PIXYL_LESIONS });
-    return PixylService.getPixylLesions(studiesStore)
+    return PixylService.getPixylAnalysis(studiesStore)
       .then(res => {
-        let promiseGetPixylLesions = Promise.resolve(res);
-        if (res && isNotReady(res)) {
-          dispatch({ type: WAITING_PIXYL_ANALYSIS });
-          promiseGetPixylLesions = retryUntilResultsReady();
+        let promiseGetPixylAnalysis = Promise.resolve(res);
+        if (res && isNotReady(res, dispatch)) {
+          promiseGetPixylAnalysis = retryUntilResultsReady(dispatch);
         }
-        return promiseGetPixylLesions.then(resReady => {
+        return promiseGetPixylAnalysis.then(resReady => {
           dispatch({ type: WAITING_UPLOAD_SEGMENTATION });
-          return PixylService.loadSegmentation(studiesStore, resReady).then(
-            () => {
-              dispatch({ type: GET_PIXYL_LESIONS, pixylLesions: resReady });
-              return resReady;
-            }
-          );
+          return PixylService.loadSegmentation(
+            studiesStore,
+            resReady.msLesionsBySerie
+          ).then(() => {
+            dispatch({
+              type: GET_PIXYL_LESIONS,
+              analysisResults: resReady,
+            });
+            return resReady;
+          });
         });
       })
       .catch(e => {
@@ -217,7 +229,7 @@ const actions = {
   /**
    * EXTENSIONS
    */
-  getPixylLesions,
+  getPixylAnalysis,
   triggerChangingStackScroll,
   multipleStackScroll,
   showHideSegmentation,

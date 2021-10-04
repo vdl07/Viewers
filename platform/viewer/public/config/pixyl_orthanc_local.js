@@ -43,6 +43,11 @@ window.config = {
       label: 'show/hide all series segmentations',
       keys: ['a'],
     },
+    {
+      commandName: 'resetViewport',
+      label: 'Reset viewport',
+      keys: ['w'],
+    },
   ],
   studyListFunctionsEnabled: true,
 };

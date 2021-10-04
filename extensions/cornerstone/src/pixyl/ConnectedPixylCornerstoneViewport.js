@@ -2,8 +2,8 @@ import { PixylCornerstoneViewport } from './PixylCornerstoneViewport';
 import { connect } from 'react-redux';
 
 function mapStateToProps(state) {
-  const { pixylLesions } = state;
-  return { pixylLesions };
+  const { pixylAnalysis } = state;
+  return { pixylAnalysis };
 }
 
 const mergeProps = (propsFromState, propsFromDispatch, ownProps) => {

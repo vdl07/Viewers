@@ -14,8 +14,8 @@ let lastStudyInstanceUIDLoaded = '';
 
 export default class PixylLesionsPanel extends React.Component {
   static propTypes = {
-    getPixylLesions: PropTypes.func.isRequired,
-    pixylLesions: PropTypes.object,
+    getPixylAnalysis: PropTypes.func.isRequired,
+    pixylAnalysis: PropTypes.object,
     studies: PropTypes.object,
     studiesStore: PropTypes.array,
     commandsManager: PropTypes.object,
@@ -27,6 +27,7 @@ export default class PixylLesionsPanel extends React.Component {
     server: PropTypes.object,
     activeContexts: PropTypes.arrayOf(PropTypes.string),
     contexts: PropTypes.object,
+    multipleStackScroll: PropTypes.func,
   };
 
   isVTK() {
@@ -56,9 +57,9 @@ export default class PixylLesionsPanel extends React.Component {
       lastStudyInstanceUIDLoaded = this.props.studiesStore[0].StudyInstanceUID;
       // const { setViewportSpecificData } = this.props;
       this.props
-        .getPixylLesions(this.props.studiesStore)
-        .then(msLesionsBySeries => {
-          if (!msLesionsBySeries) {
+        .getPixylAnalysis(this.props.studiesStore)
+        .then(pixylAnalysis => {
+          if (!pixylAnalysis || !pixylAnalysis.msLesionsBySerie) {
             this.props.setLayout({
               numRows: 1,
               numColumns: 1,
@@ -67,7 +68,9 @@ export default class PixylLesionsPanel extends React.Component {
             return;
           }
           const seriesSpecificFilters = {
-            seriesInstanceUID: Object.keys(msLesionsBySeries).join(','),
+            seriesInstanceUID: Object.keys(pixylAnalysis.msLesionsBySerie).join(
+              ','
+            ),
           };
           retrieveStudiesMetadata(
             this.props.server,
@@ -89,7 +92,7 @@ export default class PixylLesionsPanel extends React.Component {
               //   const bNumber = Number(`${dateB}`);
               //   return aNumber - bNumber;
               // });
-              if (Object.keys(msLesionsBySeries).length > 1) {
+              if (Object.keys(pixylAnalysis.msLesionsBySerie).length > 1) {
                 // const enabledElements = cornerstone.getEnabledElements();
                 // [1, 0].forEach(index => {
                 //   const enabledElement = enabledElements[index];
@@ -136,20 +139,20 @@ export default class PixylLesionsPanel extends React.Component {
     }
 
     if (
-      this.props.pixylLesions.pixylLesionLoaded &&
-      this.props.pixylLesions.pixylLesions
+      this.props.pixylAnalysis.pixylLesionLoaded &&
+      this.props.pixylAnalysis.analysisResults &&
+      this.props.pixylAnalysis.analysisResults.msLesionsBySerie
     ) {
       const seriesUUIDToUpdate = Object.keys(
-        this.props.pixylLesions.pixylLesions
+        this.props.pixylAnalysis.analysisResults.msLesionsBySerie
       ).filter(s => {
         const lastStateShowSeg =
           this.state.showHideSegmentationStateBySerie[s] &&
           this.state.showHideSegmentationStateBySerie[s].showSegmentation;
         const lastPropsLesionsShowSeg =
-          this.props.pixylLesions &&
-          this.props.pixylLesions.pixylLesions &&
-          this.props.pixylLesions.pixylLesions[s] &&
-          this.props.pixylLesions.pixylLesions[s].showSegmentation;
+          this.props.pixylAnalysis.analysisResults.msLesionsBySerie[s] &&
+          this.props.pixylAnalysis.analysisResults.msLesionsBySerie[s]
+            .showSegmentation;
         if (
           (lastStateShowSeg == undefined ? true : lastStateShowSeg) !=
           (lastPropsLesionsShowSeg == undefined
@@ -177,38 +180,42 @@ export default class PixylLesionsPanel extends React.Component {
   }
 
   render() {
-    return this.props.pixylLesions &&
-      this.props.pixylLesions.pixylLesionLoading ? (
+    return this.props.pixylAnalysis &&
+      this.props.pixylAnalysis.pixylLesionLoading ? (
       <LoadingPanel />
-    ) : this.props.pixylLesions &&
-      this.props.pixylLesions.pixylLesions &&
-      Object.keys(this.props.pixylLesions.pixylLesions).length > 0 ? (
-      Object.keys(this.props.pixylLesions.pixylLesions).map(
-        (serieUUID, index) => {
-          const showHideSegmentationState = this.state
-            .showHideSegmentationStateBySerie[serieUUID];
-          return (
-            <PixylLesionsList
-              key={index}
-              pixylLesionsSerie={
-                this.props.pixylLesions.pixylLesions[serieUUID] || {}
-              }
-              onClickLesion={segmentNumber =>
-                this.focusLesionsOnViewport(segmentNumber, serieUUID)
-              }
-              onClickChangeVisibilityLesion={(segmentNumber, isVisible) => {
-                this.showHideSegmentation(isVisible, segmentNumber, serieUUID);
-              }}
-              showSegmentationState={
-                showHideSegmentationState === undefined ||
-                showHideSegmentationState === true
-                  ? true
-                  : false
-              }
-            />
-          );
-        }
-      )
+    ) : this.props.pixylAnalysis &&
+      this.props.pixylAnalysis.analysisResults &&
+      this.props.pixylAnalysis.analysisResults.msLesionsBySerie &&
+      Object.keys(this.props.pixylAnalysis.analysisResults.msLesionsBySerie)
+        .length > 0 ? (
+      Object.keys(
+        this.props.pixylAnalysis.analysisResults.msLesionsBySerie
+      ).map((serieUUID, index) => {
+        const showHideSegmentationState = this.state
+          .showHideSegmentationStateBySerie[serieUUID];
+        return (
+          <PixylLesionsList
+            key={index}
+            pixylLesionsSerie={
+              this.props.pixylAnalysis.analysisResults.msLesionsBySerie[
+                serieUUID
+              ] || {}
+            }
+            onClickLesion={segmentNumber => {
+              this.focusLesionsOnViewport(segmentNumber, serieUUID);
+            }}
+            onClickChangeVisibilityLesion={(segmentNumber, isVisible) => {
+              this.showHideSegmentation(isVisible, segmentNumber, serieUUID);
+            }}
+            showSegmentationState={
+              showHideSegmentationState === undefined ||
+              showHideSegmentationState === true
+                ? true
+                : false
+            }
+          />
+        );
+      })
     ) : (
       <div></div>
     );
@@ -224,7 +231,7 @@ export default class PixylLesionsPanel extends React.Component {
 
   showHideSegmentation(isVisible, segmentNumber, serieUUID) {
     const { labelmaps3D } = this.getBrushStackState(serieUUID);
-    const segmentNumberToHide = [];
+    let segmentNumberToHide = [];
     let possibleLabelMaps3D = labelmaps3D;
     if (segmentNumber) {
       segmentNumberToHide.push(segmentNumber);
@@ -241,18 +248,25 @@ export default class PixylLesionsPanel extends React.Component {
     possibleLabelMaps3D.forEach(labelmap3D => {
       let segmentNumberLocal = segmentNumber;
       if (!segmentNumberLocal) {
-        labelmap3D &&
-          labelmap3D.metadata &&
-          labelmap3D.metadata.data &&
-          labelmap3D.metadata.data.forEach(d => {
-            let segmentNumberLocalExtract =
-              d && d.SegmentLabel && d.SegmentLabel.match(/[0-9]+/);
-            if (segmentNumberLocalExtract) {
-              segmentNumberToHide.push(segmentNumberLocalExtract);
-            }
-          });
+        const segmentOnLabelMapExtract = labelmap3D.labelmaps2D.flatMap(
+          s2D => s2D.segmentsOnLabelmap
+        );
+        segmentNumberToHide = [
+          ...segmentNumberToHide,
+          ...segmentOnLabelMapExtract,
+        ];
+        // labelmap3D &&
+        //   labelmap3D.metadata &&
+        //   labelmap3D.metadata.data &&
+        //   labelmap3D.metadata.data.forEach(d => {
+        //     let segmentNumberLocalExtract =
+        //       d && d.SegmentLabel && d.SegmentLabel.match(/[0-9]+/);
+        //     if (segmentNumberLocalExtract) {
+        //       segmentNumberToHide.push(segmentNumberLocalExtract);
+        //     }
+        //   });
       }
-      segmentNumberToHide.forEach(segmentNumberLocal => {
+      [...new Set(segmentNumberToHide)].forEach(segmentNumberLocal => {
         labelmap3D.segmentsHidden[
           hasOneSegmentPerFile ? 1 : segmentNumberLocal
         ] = !isVisible;
@@ -270,10 +284,107 @@ export default class PixylLesionsPanel extends React.Component {
     );
   }
 
-  focusLesionsOnViewport(segmentNumber, serieUUID) {
+  focusLesionsOnViewport(segmentNumber, serieUUIDBase) {
+    let focusSync = undefined;
+    const seriesUUIDList = Object.keys(
+      this.props.pixylAnalysis.analysisResults.msLesionsBySerie
+    );
+    (this.isVTK() ? [serieUUIDBase] : seriesUUIDList).forEach(serieUUID => {
+      const maps3D = this.getLabelMaps3D(serieUUID);
+      const hasOneSegmentPerFile = this.hasOneSegmentPerFile(maps3D);
+      const specificFrameIndex = focusSync && focusSync.frameIndex;
+      const closest = specificFrameIndex
+        ? { index2D: specificFrameIndex }
+        : this._getClosestImageIndex2D3D(
+            serieUUID,
+            segmentNumber,
+            hasOneSegmentPerFile,
+            maps3D
+          );
+
+      if (this.isCornerstone()) {
+        const element = this.getEnabledElement(serieUUID);
+        const toolState = cornerstoneTools.getToolState(element, 'stack');
+        if (!toolState) return;
+
+        const imageIds = toolState.data[0].imageIds;
+        const imageId = imageIds[closest.index2D];
+        const frameIndex = imageIds.indexOf(imageId);
+
+        const centroid = this.addCrosshair(
+          element,
+          imageId,
+          closest.index3D,
+          hasOneSegmentPerFile ? 1 : segmentNumber,
+          focusSync && focusSync.centroid
+        );
+
+        const SOPInstanceUID = cornerstone.metaData.get(
+          'SOPInstanceUID',
+          imageId
+        );
+        const StudyInstanceUID = cornerstone.metaData.get(
+          'StudyInstanceUID',
+          imageId
+        );
+
+        const data = {
+          SOPInstanceUID,
+          StudyInstanceUID,
+          activeViewportIndex: parseInt(this.getActiveViewportIndex(serieUUID)),
+          frameIndex,
+          refreshViewports: true,
+        };
+        this.props.commandsManager.runCommand('jumpToImage', data);
+        scroll(element, 1);
+        scroll(element, -1);
+        focusSync = { frameIndex, centroid };
+      }
+
+      if (this.isVTK()) {
+        const labelMaps3D = this.getActiveLabelMaps3D(serieUUID);
+        const currentDisplaySet = this.getCurrentDisplaySet(serieUUID);
+        const frame = labelMaps3D.labelmaps2D[closest.index2D];
+        const data = {
+          studies: this.props.studiesStore,
+          StudyInstanceUID: currentDisplaySet.StudyInstanceUID,
+          displaySetInstanceUID: currentDisplaySet.displaySetInstanceUID,
+          SOPClassUID: this.getActiveViewport(serieUUID).sopClassUIDs[0],
+          SOPInstanceUID: currentDisplaySet.SOPInstanceUID,
+          segmentNumber,
+          frameIndex: closest.index2D,
+          frame,
+        };
+        this.props.commandsManager.runCommand('jumpToSlice', data);
+      }
+    });
+  }
+
+  addCrosshair(element, imageId, index3D, segmentNumber, centroid) {
+    if (centroid) {
+      DICOMSegTempCrosshairsTool.addCrosshairByCentroid(
+        centroid,
+        element,
+        imageId
+      );
+      return centroid;
+    } else {
+      return DICOMSegTempCrosshairsTool.addCrosshair(
+        element,
+        imageId,
+        segmentNumber,
+        index3D
+      );
+    }
+  }
+
+  _getClosestImageIndex2D3D(
+    serieUUID,
+    segmentNumber,
+    hasOneSegmentPerFile,
+    maps3D
+  ) {
     const validIndexList = [];
-    const maps3D = this.getLabelMaps3D(serieUUID);
-    const hasOneSegmentPerFile = this.hasOneSegmentPerFile(maps3D);
     if (hasOneSegmentPerFile) {
       maps3D.forEach((labelMap3D, index3D) => {
         labelMap3D &&
@@ -294,7 +405,10 @@ export default class PixylLesionsPanel extends React.Component {
       const activeLabelMaps2D = labelmaps3D[activeLabelmapIndex].labelmaps2D;
       activeLabelMaps2D.forEach((labelMap2D, index) => {
         if (labelMap2D.segmentsOnLabelmap.includes(segmentNumber)) {
-          validIndexList.push({ index2D: index, index3D: activeLabelmapIndex });
+          validIndexList.push({
+            index2D: index,
+            index3D: activeLabelmapIndex,
+          });
         }
       });
     }
@@ -302,81 +416,11 @@ export default class PixylLesionsPanel extends React.Component {
 
     const avg = array => array.reduce((a, b) => a + b) / array.length;
     const average = avg(validIndexList.map(v => v.index2D));
-    const closest = validIndexList.reduce((prev, curr) => {
+    return validIndexList.reduce((prev, curr) => {
       return Math.abs(curr.index2D - average) < Math.abs(prev.index2D - average)
         ? curr
         : prev;
     });
-
-    if (this.isCornerstone()) {
-      this.addCrosshair(
-        serieUUID,
-        closest,
-        segmentNumber,
-        hasOneSegmentPerFile
-      );
-
-      const element = this.getEnabledElement(serieUUID);
-      const toolState = cornerstoneTools.getToolState(element, 'stack');
-      if (!toolState) return;
-
-      const imageIds = toolState.data[0].imageIds;
-      const imageId = imageIds[closest.index2D];
-      const frameIndex = imageIds.indexOf(imageId);
-
-      const SOPInstanceUID = cornerstone.metaData.get(
-        'SOPInstanceUID',
-        imageId
-      );
-      const StudyInstanceUID = cornerstone.metaData.get(
-        'StudyInstanceUID',
-        imageId
-      );
-
-      const data = {
-        SOPInstanceUID,
-        StudyInstanceUID,
-        activeViewportIndex: parseInt(this.getActiveViewportIndex(serieUUID)),
-        frameIndex,
-        refreshViewports: true,
-      };
-      this.props.commandsManager.runCommand('jumpToImage', data);
-      scroll(element, 1);
-      scroll(element, -1);
-    }
-
-    if (this.isVTK()) {
-      const labelMaps3D = this.getActiveLabelMaps3D(serieUUID);
-      const currentDisplaySet = this.getCurrentDisplaySet(serieUUID);
-      const frame = labelMaps3D.labelmaps2D[closest.index2D];
-      const data = {
-        studies: this.props.studiesStore,
-        StudyInstanceUID: currentDisplaySet.StudyInstanceUID,
-        displaySetInstanceUID: currentDisplaySet.displaySetInstanceUID,
-        SOPClassUID: this.getActiveViewport(serieUUID).sopClassUIDs[0],
-        SOPInstanceUID: currentDisplaySet.SOPInstanceUID,
-        segmentNumber,
-        frameIndex: closest.index2D,
-        frame,
-      };
-      this.props.commandsManager.runCommand('jumpToSlice', data);
-    }
-  }
-
-  addCrosshair(serieUUID, closest, segmentNumber, hasOneSegmentPerFile) {
-    const element = this.getEnabledElement(serieUUID);
-    const toolState = cornerstoneTools.getToolState(element, 'stack');
-    if (!toolState) return;
-
-    const imageIds = toolState.data[0].imageIds;
-    const imageId = imageIds[closest.index2D];
-
-    DICOMSegTempCrosshairsTool.addCrosshair(
-      element,
-      imageId,
-      hasOneSegmentPerFile ? 1 : segmentNumber,
-      closest.index3D
-    );
   }
 
   getActiveViewportIndex(serieUUID) {

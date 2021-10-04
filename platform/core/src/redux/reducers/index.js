@@ -5,7 +5,7 @@ import servers from './servers';
 import studies from './studies';
 import timepointManager from './timepointManager';
 import viewports from './viewports';
-import pixylLesions from './pixyl/pixylLesions';
+import pixylAnalysis from './pixyl/pixylAnalysis';
 import pixylCustoms from './pixyl/customs';
 
 const reducers = {
@@ -16,7 +16,7 @@ const reducers = {
   studies,
   timepointManager,
   viewports,
-  pixylLesions,
+  pixylAnalysis,
   pixylCustoms,
 };
 

@@ -2,7 +2,7 @@ import utils from '../../utils';
 import metadata from '../../classes/metadata';
 const { studyMetadataManager } = utils;
 
-export function getPixylLesions(studiesStore) {
+export function getPixylAnalysis(studiesStore) {
   const firstStudyStore = studiesStore[0];
   const studyUUID = firstStudyStore.StudyInstanceUID;
   return window
@@ -12,7 +12,7 @@ export function getPixylLesions(studiesStore) {
       if (!resJson.msLesionsBySerie) {
         return Promise.resolve();
       }
-      return resJson.msLesionsBySerie;
+      return resJson;
     });
 }
 
@@ -23,7 +23,9 @@ function sleep(ms) {
 export function loadSegmentation(studiesStore, lesionsBySerie) {
   const firstStudyStore = studiesStore[0];
   const studyUUID = firstStudyStore.StudyInstanceUID;
+  let failedLoad = false;
   return new Promise(async (resolve, reject) => {
+    await sleep(1500);
     for (const serieInstanceUID in lesionsBySerie) {
       let segmentationList = _getReferencedSegDisplaysets(
         studyUUID,
@@ -42,7 +44,7 @@ export function loadSegmentation(studiesStore, lesionsBySerie) {
             seg,
             studiesStore
           );
-          if (!seg.isLoaded && referencedDisplaySet && studiesStore) {
+          if (referencedDisplaySet && studiesStore) {
             try {
               return seg
                 .load(
@@ -51,7 +53,10 @@ export function loadSegmentation(studiesStore, lesionsBySerie) {
                   index !== segmentationList.length - 1
                 )
                 .then(metadataSeg => {
-                  lesionsBySerie &&
+                  failedLoad = !metadataSeg || !metadataSeg.data;
+                  metadataSeg &&
+                    metadataSeg.data &&
+                    lesionsBySerie &&
                     lesionsBySerie[serieInstanceUID] &&
                     lesionsBySerie[serieInstanceUID].msLesions &&
                     lesionsBySerie[serieInstanceUID].msLesions.forEach(e => {
@@ -73,6 +78,9 @@ export function loadSegmentation(studiesStore, lesionsBySerie) {
           }
         })
       );
+    }
+    if (failedLoad) {
+      await loadSegmentation(studiesStore, lesionsBySerie);
     }
     resolve();
   });

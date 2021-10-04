@@ -2,7 +2,7 @@ import * as PixylLesionsActionType from '../../constants/PixylActionTypes';
 
 const defaultState = {
   pixylLesionLoading: false,
-  pixylLesions: undefined,
+  analysisResults: undefined,
   pixylLesionLoaded: false,
   pixylLesionError: undefined,
   pixylWaitingUploadSegmentation: false,
@@ -15,7 +15,7 @@ const pixylLesions = (state = defaultState, action) => {
       return Object.assign({}, state, {
         pixylLesionLoading: false,
         pixylLesionLoaded: true,
-        pixylLesions: action.pixylLesions,
+        analysisResults: action.analysisResults,
       });
     case PixylLesionsActionType.LOADING_GET_PIXYL_LESIONS:
       return Object.assign({}, state, {
@@ -24,6 +24,8 @@ const pixylLesions = (state = defaultState, action) => {
     case PixylLesionsActionType.WAITING_PIXYL_ANALYSIS:
       return Object.assign({}, state, {
         pixylAnalysisRunning: true,
+        pixylLesionLoading: true,
+        analysisResults: action.analysisResults,
       });
     case PixylLesionsActionType.WAITING_UPLOAD_SEGMENTATION:
       return Object.assign({}, state, {
@@ -35,7 +37,7 @@ const pixylLesions = (state = defaultState, action) => {
         pixylLesionError: action.error || {},
       });
     case PixylLesionsActionType.SHOW_HIDE_SEGMENTATION: {
-      const statePxylLesions = { ...state.pixylLesions };
+      const statePxylLesions = { ...state.analysisResults.msLesionsBySerie };
       for (const seriesInstanceUID in statePxylLesions) {
         if (
           action.seriesInstanceUID === undefined ||
@@ -50,7 +52,10 @@ const pixylLesions = (state = defaultState, action) => {
         }
       }
       return Object.assign({}, state, {
-        pixylLesions: { ...statePxylLesions },
+        analysisResults: {
+          ...state.analysisResults,
+          msLesionsBySerie: { ...statePxylLesions },
+        },
       });
     }
     default:
