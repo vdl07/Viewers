@@ -4,7 +4,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-const SidePanel = ({ from, isOpen, children, width }) => {
+const SidePanel = ({
+  from,
+  isOpen,
+  children,
+  width,
+  selectedRightSidePanel,
+}) => {
   const fromSideClass = from === 'right' ? 'from-right' : 'from-left';
 
   const styles = width
@@ -17,9 +23,14 @@ const SidePanel = ({ from, isOpen, children, width }) => {
   return (
     <section
       style={styles}
-      className={classNames('sidepanel', fromSideClass, {
-        'is-open': isOpen,
-      })}
+      className={classNames(
+        'sidepanel',
+        selectedRightSidePanel,
+        fromSideClass,
+        {
+          'is-open': isOpen,
+        }
+      )}
     >
       {children}
     </section>
@@ -31,6 +42,7 @@ SidePanel.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   children: PropTypes.node,
   width: PropTypes.string,
+  selectedRightSidePanel: PropTypes.string,
 };
 
 export default SidePanel;

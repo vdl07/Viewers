@@ -66,14 +66,17 @@ const commandsModule = ({ commandsManager }) => {
 
       store.dispatch(setActiveViewportSpecificData(newDisplaySetData));
     },
-    enableMultiStackScroll: () => {
+    enableMultiStackScroll: ({ viewports }) => {
       if (!multipleStackScrollActivated) {
         multipleStackScrollActivated = true;
-        store.dispatch(multipleStackScroll(true));
+        store.dispatch(
+          multipleStackScroll(true, viewports.activeViewportIndex)
+        );
+        console.log('CHANGE : ' + viewports.activeViewportIndex);
       }
     },
     disableMultiStackScroll: () => {
-      store.dispatch(multipleStackScroll(false));
+      store.dispatch(multipleStackScroll(false, -1));
       multipleStackScrollActivated = false;
     },
     showHideSegmentationAction: ({ viewports }) => {
@@ -83,13 +86,17 @@ const commandsModule = ({ commandsManager }) => {
         viewports.viewportSpecificData[viewports.activeViewportIndex] &&
         store.dispatch(
           showHideSegmentation(
+            commandsManager,
+            viewports,
             viewports.viewportSpecificData[viewports.activeViewportIndex]
               .SeriesInstanceUID
           )
         );
     },
-    showHideAllSegmentation: () => {
-      store.dispatch(showHideSegmentation(undefined));
+    showHideAllSegmentation: ({ viewports }) => {
+      store.dispatch(
+        showHideSegmentation(commandsManager, viewports, undefined)
+      );
     },
   };
 

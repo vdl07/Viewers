@@ -1,0 +1,18 @@
+.pixyl-report{
+    color: white
+}
+
+.pixyl-report .dynamic{
+    color: var(--text-secondary-color);
+    font-weight: bold;
+}
+
+.pixyl-report .logo{
+    width: 50%;
+    display: block;
+    margin: auto;
+}
+
+.pixyl-report .logo svg{
+    padding-top: 10px;
+}

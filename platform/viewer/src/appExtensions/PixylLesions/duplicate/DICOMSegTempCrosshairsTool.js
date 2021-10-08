@@ -8,7 +8,6 @@ import cornerstoneTools, {
 import cornerstone from 'cornerstone-core';
 import drawCanvasCrosshairs from './utils/drawCanvasCrosshairs';
 import TOOL_NAMES from './TOOL_NAMES';
-import { DicomLoaderService } from '../../../../../core/src/utils';
 
 const { DICOM_SEG_TEMP_CROSSHAIRS_TOOL } = TOOL_NAMES;
 const { getters } = getModule('segmentation');

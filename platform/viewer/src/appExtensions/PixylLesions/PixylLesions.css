@@ -1,0 +1,100 @@
+.pixylLesion .segment-color {
+    margin: auto;
+    border-radius: 100%;
+    margin: .375rem .45rem;
+    width: 20px;
+    height: 20px;
+}
+
+#tooltipLesion {
+    opacity: 0;
+    position: absolute;
+    background-color: black;
+    color: var(--text-secondary-color);
+    top: 0;
+    left: 0;
+    height: 40px;
+    width: 120px;
+    padding: 10 ;
+}
+
+#tooltipLesion::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: var(--text-secondary-color) transparent transparent transparent;
+  }
+
+#tooltipLesion.active{
+    opacity: 1;
+}
+
+.RoundedButtonGroup.pixyl{
+    position: relative;
+    width: var(--right-sidepanel-menu-width);
+    z-index: 1;
+}
+
+table.pixylLesionsTab{
+    display: block;
+}
+
+table.pixylLesionsTab thead{
+    display: block;
+    width: 100%;
+    position: relative;
+}
+
+table.pixylLesionsTab tbody{
+    display: block;
+    width: 100%;
+    position: relative;
+    overflow: auto;
+    height: calc(100vh - var(--toolbar-height) - var(--top-bar-height) - 60px);
+}
+
+table.pixylLesionsTab tbody tr, table.pixylLesionsTab thead tr{
+    width: 100%;
+    display: flex;
+    height: 30px;
+}
+
+table.pixylLesionsTab td{
+    height: 30px;
+}
+
+
+table.pixylLesionsTab td,table.pixylLesionsTab th{
+    flex-basis:100%;
+    flex-grow:2;
+}
+
+
+.sidepanel.pixyl-lesions-panel{
+    overflow: hidden;
+}
+
+table.pixylLesionsTab > tbody td{
+    padding: 0;
+}
+
+table.pixylLesionsTab tbody tr{
+    padding: 0;
+}
+
+table.pixylLesionsTab td:first-child,
+table.pixylLesionsTab th:first-child{
+  flex-basis:30%;
+  flex-grow:1;
+}
+
+table.pixylLesionsTab button{
+    padding: .375rem .45rem;
+    background-color: transparent;
+    border: 0;
+    color: var(--text-secondary-color);
+}

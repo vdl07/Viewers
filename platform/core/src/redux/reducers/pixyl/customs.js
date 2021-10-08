@@ -1,4 +1,5 @@
 import * as CustomActionTypes from '../../constants/CustomActionTypes';
+
 const defaultState = {
   synchronisedImageIndex: -1,
   viewportBaseIndex: -1,
@@ -14,16 +15,15 @@ const pixylCustomsReducer = (state = defaultState, action) => {
             action.event.detail &&
             action.event.detail.newImageIdIndex
           : -1,
-        viewportBaseIndex: state.isMultipleStackScrollEnabled
-          ? action && action.viewportBaseIndex
-          : -1,
       });
     case CustomActionTypes.MULTIPLE_STACK_SCROLL:
       return Object.assign({}, state, {
         isMultipleStackScrollEnabled: action.enabled,
+        viewportBaseIndex: action.viewportBaseIndex,
       });
     default:
       return state;
   }
 };
+
 export default pixylCustomsReducer;

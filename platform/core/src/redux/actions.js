@@ -20,6 +20,9 @@ import {
   WAITING_UPLOAD_SEGMENTATION,
   LOADING_GET_PIXYL_LESIONS,
   SHOW_HIDE_SEGMENTATION,
+  SET_MOUSE_OVER_INFOS,
+  SET_REMOVE_LESION_BY_MOUSE_CLICK,
+  REMOVE_ADD_SEGMENT_SEGMENTATION,
 } from './constants/PixylActionTypes';
 import * as PixylService from '../services/PixylService';
 import {
@@ -193,12 +196,57 @@ export const triggerChangingStackScroll = (event, viewportBaseIndex) => {
   return { type: CHANGING_STACK_SCROLL, event, viewportBaseIndex };
 };
 
-export const multipleStackScroll = enabled => {
-  return { type: MULTIPLE_STACK_SCROLL, enabled };
+export const multipleStackScroll = (enabled, viewportBaseIndex) => {
+  return { type: MULTIPLE_STACK_SCROLL, enabled, viewportBaseIndex };
 };
 
-export const showHideSegmentation = seriesInstanceUID => {
-  return { type: SHOW_HIDE_SEGMENTATION, seriesInstanceUID };
+export const showHideSegmentation = (
+  commandsManager,
+  viewports,
+  seriesInstanceUID
+) => {
+  return {
+    type: SHOW_HIDE_SEGMENTATION,
+    commandsManager,
+    viewports,
+    seriesInstanceUID,
+  };
+};
+
+export const removeAddSegmentSegmentation = (
+  segmentNumber,
+  commandsManager,
+  viewports,
+  seriesInstanceUID
+) => {
+  return {
+    type: REMOVE_ADD_SEGMENT_SEGMENTATION,
+    segmentNumber,
+    commandsManager,
+    viewports,
+    seriesInstanceUID,
+  };
+};
+
+export const setMouseOverInfos = (element, event) => {
+  return { type: SET_MOUSE_OVER_INFOS, element, event };
+};
+
+export const removeLesionMouseClick = (
+  element,
+  event,
+  commandsManager,
+  viewports,
+  serieUUID
+) => {
+  return {
+    type: SET_REMOVE_LESION_BY_MOUSE_CLICK,
+    element,
+    event,
+    commandsManager,
+    viewports,
+    serieUUID,
+  };
 };
 
 function sleep(ms) {
@@ -233,6 +281,9 @@ const actions = {
   triggerChangingStackScroll,
   multipleStackScroll,
   showHideSegmentation,
+  setMouseOverInfos,
+  removeLesionMouseClick,
+  removeAddSegmentSegmentation,
 };
 
 export default actions;

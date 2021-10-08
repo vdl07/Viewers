@@ -60,14 +60,39 @@ export function loadSegmentation(studiesStore, lesionsBySerie) {
                     lesionsBySerie[serieInstanceUID] &&
                     lesionsBySerie[serieInstanceUID].msLesions &&
                     lesionsBySerie[serieInstanceUID].msLesions.forEach(e => {
-                      const segment = metadataSeg.data.find(
-                        f =>
-                          f &&
-                          f.SegmentLabel &&
-                          f.SegmentLabel.includes('' + e.label)
-                      );
+                      const segment = metadataSeg.data
+                        .map(m => {
+                          if (!m) {
+                            return;
+                          }
+                          if (m.SegmentLabel.includes('new')) {
+                            m.indexSort = 1;
+                          } else if (m.SegmentLabel.includes('enlarging')) {
+                            m.indexSort = 3;
+                          } else {
+                            m.indexSort = 2;
+                          }
+                          return m;
+                        })
+                        .sort((a, b) => {
+                          if (!a || !b) {
+                            return 0;
+                          }
+                          return a.indexSort > b.indexSort
+                            ? -1
+                            : a.indexSort < b.indexSort
+                            ? 1
+                            : 0;
+                        })
+                        .find(
+                          f =>
+                            f &&
+                            f.SegmentLabel &&
+                            f.SegmentLabel.includes('' + e.label)
+                        );
                       e.lesionType =
-                        segment && segment.SegmentLabel.match(/[a-z]+/);
+                        segment && segment.SegmentLabel.match(/[a-z]+/)[0];
+                      e.OHIFSegmentNumber = segment && segment.SegmentNumber;
                     });
                 });
             } catch (error) {

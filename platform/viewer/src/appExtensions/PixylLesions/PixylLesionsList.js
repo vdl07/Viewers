@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Icon } from '@ohif/ui';
+import './PixylLesions.css';
 
 export default class PixylLesionsList extends React.Component {
   static propTypes = {
@@ -8,6 +9,7 @@ export default class PixylLesionsList extends React.Component {
     onClickLesion: PropTypes.func,
     onClickChangeVisibilityLesion: PropTypes.func,
     showSegmentationState: PropTypes.bool,
+    segmentRemoved: PropTypes.array,
   };
 
   render() {
@@ -17,14 +19,14 @@ export default class PixylLesionsList extends React.Component {
       onClickChangeVisibilityLesion,
     } = this.props;
     return (
-      <table className="table table--striped table--hoverable">
+      <table className="table table--striped table--hoverable pixylLesionsTab">
         <thead className="table-head">
           <tr>
-            <th>Lesion ID</th>
-            <th>Type</th>
-            <th>Volume (mL)</th>
-            <th style={{ width: '40%' }}>McDonald region</th>
-            <th></th>
+            {/* <th>Lesion ID</th> */}
+            <th style={{ maxWidth: '45px' }}>Type</th>
+            <th style={{ maxWidth: '75px' }}>Vol. (mL)</th>
+            <th>Région McDonald</th>
+            <th style={{ maxWidth: '45px' }}></th>
             {/* <th>Anotomical region</th>
             <th>Vascular territory</th>
             <th>White matter trac</th> */}
@@ -35,17 +37,45 @@ export default class PixylLesionsList extends React.Component {
             pixylLesionsSerie.msLesions &&
             pixylLesionsSerie.msLesions.length > 0 &&
             pixylLesionsSerie.msLesions.map &&
-            pixylLesionsSerie.msLesions.map((lesion, index) => {
-              return (
-                <PixylLesionRow
-                  key={index}
-                  pixylLesion={lesion}
-                  onClickLesion={onClickLesion}
-                  onClickChangeVisibilityLesion={onClickChangeVisibilityLesion}
-                  showSegmentationState={this.props.showSegmentationState}
-                />
-              );
-            })}
+            pixylLesionsSerie.msLesions
+              .filter(f => f && f.lesionType)
+              .map(m => {
+                if (!m) {
+                  return;
+                }
+                if (m.lesionType.includes('new')) {
+                  m.indexSort = 3;
+                } else if (m.lesionType.includes('enlarging')) {
+                  m.indexSort = 2;
+                } else {
+                  m.indexSort = 1;
+                }
+                return m;
+              })
+              .sort((a, b) => {
+                if (!a || !b) {
+                  return 0;
+                }
+                return a.indexSort > b.indexSort
+                  ? -1
+                  : a.indexSort < b.indexSort
+                  ? 1
+                  : 0;
+              })
+              .map((lesion, index) => {
+                return (
+                  <PixylLesionRow
+                    key={index}
+                    pixylLesion={lesion}
+                    onClickLesion={onClickLesion}
+                    onClickChangeVisibilityLesion={
+                      onClickChangeVisibilityLesion
+                    }
+                    showSegmentationState={this.props.showSegmentationState}
+                    segmentRemoved={this.props.segmentRemoved}
+                  />
+                );
+              })}
         </tbody>
       </table>
     );
@@ -58,6 +88,7 @@ class PixylLesionRow extends React.Component {
     onClickLesion: PropTypes.func,
     onClickChangeVisibilityLesion: PropTypes.func,
     showSegmentationState: PropTypes.bool,
+    segmentRemoved: PropTypes.array,
   };
 
   state = {
@@ -66,12 +97,12 @@ class PixylLesionRow extends React.Component {
   };
 
   componentDidUpdate() {
-    if (this.state.showSegmentationState != this.props.showSegmentationState) {
-      this.setState({
-        showSegmentationState: this.props.showSegmentationState,
-        visible: this.props.showSegmentationState,
-      });
-    }
+    // if (this.state.showSegmentationState != this.props.showSegmentationState) {
+    //   this.setState({
+    //     showSegmentationState: this.props.showSegmentationState,
+    //     visible: this.props.showSegmentationState,
+    //   });
+    // }
   }
 
   render() {
@@ -80,38 +111,77 @@ class PixylLesionRow extends React.Component {
       onClickLesion,
       onClickChangeVisibilityLesion,
     } = this.props;
+    let backgroundColorLesion = undefined;
+    switch (pixylLesion.lesionType) {
+      case 'new':
+        backgroundColorLesion = '#EB1A5B';
+        break;
+      case 'enlarging':
+        backgroundColorLesion = '#FED307';
+        break;
+      case 'stable':
+        backgroundColorLesion = '#6DCFF6';
+        break;
+      default:
+        pixylLesion.lesionType = 'cross';
+        backgroundColorLesion = '#77C371';
+    }
+    const lesionTypeComponent = (
+      <div
+        className="segment-color"
+        style={{
+          backgroundColor: backgroundColorLesion,
+          width: '16px',
+          height: '16px',
+        }}
+        title={pixylLesion.lesionType}
+      ></div>
+    );
     return (
       <tr
+        className="pixylLesion"
         onClick={() => {
-          onClickLesion && onClickLesion(pixylLesion.label);
+          onClickLesion &&
+            onClickLesion(pixylLesion.OHIFSegmentNumber || pixylLesion.label);
         }}
       >
-        <td>{pixylLesion.label}</td>
-        <td>{pixylLesion.lesionType}</td>
-        <td>
+        {/* <td>{pixylLesion.label}</td> */}
+        <td style={{ maxWidth: '45px' }}>{lesionTypeComponent}</td>
+        <td style={{ maxWidth: '75px' }}>
           {pixylLesion.volmm3
             ? pixylLesion.volmm3 > 0
-              ? Math.round(pixylLesion.volmm3 * 100) / 100
+              ? Math.round(pixylLesion.volmm3)
               : 0
             : '-'}
         </td>
         <td>{pixylLesion.regionMcDo && pixylLesion.regionMcDo.region_name}</td>
-        <td>
-          <Icon
-            className={`eye-icon ${this.state.visible && '--visible'}`}
-            name={this.state.visible ? 'eye' : 'eye-closed'}
-            width="20px"
-            height="20px"
-            onClick={() => {
-              const newVisibleState = !this.state.visible;
-              this.setState({ visible: newVisibleState });
-              onClickChangeVisibilityLesion &&
-                onClickChangeVisibilityLesion(
-                  pixylLesion.label,
-                  newVisibleState
-                );
-            }}
-          />
+        <td style={{ maxWidth: '45px' }}>
+          {pixylLesion.OHIFSegmentNumber && (
+            <button>
+              <Icon
+                className={`eye-icon ${this.state.visible && '--visible'}`}
+                name={
+                  this.props.segmentRemoved &&
+                  this.props.segmentRemoved.some(
+                    s => s == pixylLesion.OHIFSegmentNumber
+                  )
+                    ? 'eye-closed'
+                    : 'eye'
+                }
+                width="20px"
+                height="20px"
+                onClick={() => {
+                  const newVisibleState = !this.state.visible;
+                  this.setState({ visible: newVisibleState });
+                  onClickChangeVisibilityLesion &&
+                    onClickChangeVisibilityLesion(
+                      pixylLesion.OHIFSegmentNumber || pixylLesion.label,
+                      newVisibleState
+                    );
+                }}
+              />
+            </button>
+          )}
           {/* <button
             title={this.state.visible ? 'Hide' : 'Show'}
             onClick={() => {

@@ -19,7 +19,7 @@ function OHIFLogo() {
        *
        * Or as `OHIF` on really small displays
        */}
-      <Icon name="ohif-text-logo" className="header-logo-text" />
+      {/* <Icon name="ohif-text-logo" className="header-logo-text" /> */}
     </a>
   );
 }

@@ -1,6 +1,7 @@
 import ConnectedPixylLesionsPanel from './ConnectedPixylLesionsPanel';
 import toolbarModule from './toolbarModule.js';
 import React from 'react';
+import init from './init.js';
 
 /**
  *
@@ -14,13 +15,9 @@ export default {
   /**
    * LIFECYCLE HOOKS
    */
-
-  preRegistration({
-    servicesManager = {},
-    commandsManager = {},
-    appConfig = {},
-    configuration = {},
-  }) {},
+  preRegistration({ servicesManager, configuration = {} }) {
+    init({ servicesManager, configuration });
+  },
 
   /**
    * MODULE GETTERS

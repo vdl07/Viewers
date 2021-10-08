@@ -8,12 +8,25 @@ const {
   setViewportActive,
   setViewportSpecificData,
   triggerChangingStackScroll,
+  setMouseOverInfos,
+  setMouseClickInfos,
 } = OHIF.redux.actions;
 const {
   onAdded,
   onRemoved,
   onModified,
 } = OHIF.measurements.MeasurementHandlers;
+
+let timer;
+let lastMouseMoveInfos = undefined;
+const debounceTooltip = (func, timeout = 1000) => {
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      func.apply(this, args);
+    }, timeout);
+  };
+};
 
 // TODO: Transition to enums for the action names so that we can ensure they stay up to date
 // everywhere they're used.
@@ -64,7 +77,7 @@ const mapStateToProps = (state, ownProps) => {
       state.pixylCustoms && state.pixylCustoms.synchronisedImageIndex > -1
         ? parseInt(state.pixylCustoms.synchronisedImageIndex)
         : undefined,
-    viewportIndex: 0,
+    viewportIndex: viewportIndex,
     ...state.pixylCustoms,
     //stack: viewportSpecificData.stack,
     // viewport: viewportSpecificData.viewport,
@@ -82,6 +95,9 @@ const mapDispatchToProps = (dispatch, ownProps) => {
       ) {
         return;
       }
+      console.log(
+        'TRUE : ' + viewportIndex + ' LOCK : ' + ownProps.viewportBaseIndex
+      );
       dispatch(setViewportActive(viewportIndex));
     },
 
@@ -98,6 +114,22 @@ const mapDispatchToProps = (dispatch, ownProps) => {
     onElementEnabled: event => {
       const enabledElement = event.detail.element;
       setEnabledElement(viewportIndex, enabledElement);
+
+      enabledElement.addEventListener('mousemove', function(event) {
+        if (lastMouseMoveInfos) {
+          lastMouseMoveInfos = undefined;
+          dispatch(setMouseOverInfos());
+        }
+        debounceTooltip(() => {
+          lastMouseMoveInfos = event;
+          dispatch(setMouseOverInfos(enabledElement, event, event));
+        })();
+      });
+      enabledElement.addEventListener('click', function(event) {
+        if (event.altKey) {
+          dispatch(setMouseClickInfos(enabledElement, event));
+        }
+      });
       dispatch(
         setViewportSpecificData(viewportIndex, {
           // TODO: Hack to make sure our plugin info is available from the outset

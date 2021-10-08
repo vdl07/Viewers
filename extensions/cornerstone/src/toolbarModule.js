@@ -244,6 +244,14 @@ const definitions = [
           togglable: true,
         },
       },
+      {
+        id: 'RemoveLesions',
+        label: 'Remove lesion',
+        icon: 'trash',
+        type: TOOLBAR_BUTTON_TYPES.SET_TOOL_ACTIVE,
+        commandName: 'setToolActive',
+        commandOptions: { toolName: 'PixylRemoveLesionMouse' },
+      },
     ],
   },
   {
